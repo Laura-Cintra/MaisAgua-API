@@ -30,7 +30,7 @@ public class Reservatorio {
 
     @Column(name = "data_instalacao", nullable = false, updatable = false,
             columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private LocalDateTime data_instalacao= LocalDateTime.now();
+    private LocalDateTime data_instalacao = LocalDateTime.now();
 
     @ManyToOne
     @JoinColumn(name = "id_unidade", referencedColumnName = "id_unidade", nullable = false)
