@@ -22,7 +22,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/reservatorio-sensor")
 @Slf4j
-public class ReservatorioSensorController {
+public class ReservatorioDispositivoController {
 
     @Autowired
     private ReservatorioDispositivoRepository reservatorioSensorRepository;
