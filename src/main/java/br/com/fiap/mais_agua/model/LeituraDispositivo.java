@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
@@ -28,8 +29,9 @@ public class LeituraDispositivo {
     @NotNull
     @DecimalMin("0.00")
     @DecimalMax("14.00")
-    @Column(name = "ph_int", precision = 4, scale = 2)
-    private Double phInt;
+    @Column(precision = 4, scale = 2)
+    private BigDecimal ph_int;
+
 
     @Column(name = "data_hora")
     private LocalDateTime dataHora = LocalDateTime.now();
