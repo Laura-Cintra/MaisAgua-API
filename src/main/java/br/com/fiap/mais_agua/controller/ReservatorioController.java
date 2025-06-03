@@ -1,14 +1,11 @@
 package br.com.fiap.mais_agua.controller;
 
 import br.com.fiap.mais_agua.model.Reservatorio;
-import br.com.fiap.mais_agua.model.Unidade;
 import br.com.fiap.mais_agua.model.Usuario;
 import br.com.fiap.mais_agua.repository.ReservatorioRepository;
-import br.com.fiap.mais_agua.repository.UnidadeRepository;
 import br.com.fiap.mais_agua.service.ReservatorioService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.annotations.Cache;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -27,8 +24,6 @@ public class ReservatorioController {
     @Autowired
     private ReservatorioRepository reservatorioRepository;
 
-    @Autowired
-    private UnidadeRepository unidadeRepository;
 
     @Autowired
     private ReservatorioService service;

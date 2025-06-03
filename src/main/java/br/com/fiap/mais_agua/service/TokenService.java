@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
-import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -14,7 +13,7 @@ import java.time.ZoneOffset;
 
 @Service
 public class TokenService {
-    private Instant expiresAt = LocalDateTime.now().plusMinutes(10).toInstant(ZoneOffset.ofHours(-3));
+    private Instant expiresAt = LocalDateTime.now().plusDays(1).toInstant(ZoneOffset.ofHours(-3));
 
     private Algorithm algorithm = Algorithm.HMAC256("secret");
     public Token createToken(Usuario user

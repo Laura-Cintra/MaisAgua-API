@@ -30,7 +30,7 @@ public class LeituraDispositivoService {
     /**
      * Gera automaticamente leituras de todos os dispositivos cadastrados a cada 3 dias às 9h da manhã
      */
-    @Scheduled(cron = "0 0 9 */3 * *")
+    @Scheduled(cron = "0 0 9 * * *")
     public void gerarLeituraAutomatica() {
         log.info("Iniciando geração automática de leitura dos dispositivos...");
 

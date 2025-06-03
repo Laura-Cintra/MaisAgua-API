@@ -5,7 +5,6 @@ import br.com.fiap.mais_agua.model.Usuario;
 import br.com.fiap.mais_agua.repository.UnidadeRepository;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.annotations.Cache;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
