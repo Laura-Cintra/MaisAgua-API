@@ -1,5 +1,8 @@
 package br.com.fiap.mais_agua.controller;
 
+import br.com.fiap.mais_agua.model.DTO.ReservatorioReadDTO;
+import br.com.fiap.mais_agua.model.DTO.UnidadeReadDTO;
+import br.com.fiap.mais_agua.model.DTO.UsuarioResponseDTO;
 import br.com.fiap.mais_agua.model.Reservatorio;
 import br.com.fiap.mais_agua.model.Usuario;
 import br.com.fiap.mais_agua.repository.ReservatorioRepository;
@@ -14,6 +17,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -29,42 +33,124 @@ public class ReservatorioController {
     private ReservatorioService service;
 
     @GetMapping
-    public List<Reservatorio> index(@AuthenticationPrincipal Usuario usuario) {
-        return reservatorioRepository.findByUnidadeUsuario(usuario);
+    public List<ReservatorioReadDTO> index(@AuthenticationPrincipal Usuario usuario) {
+        List<Reservatorio> lista = reservatorioRepository.findByUnidadeUsuario(usuario);
+        List<ReservatorioReadDTO> dtoList = new ArrayList<>();
+
+        for (Reservatorio reservatorio : lista) {
+            dtoList.add(new ReservatorioReadDTO(
+                    reservatorio.getIdReservatorio(),
+                    reservatorio.getNome(),
+                    reservatorio.getCapacidadeTotalLitros(),
+                    reservatorio.getDataInstalacao().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                    new UnidadeReadDTO(
+                            reservatorio.getUnidade().getIdUnidade(),
+                            reservatorio.getUnidade().getNome(),
+                            reservatorio.getUnidade().getCapacidadeTotalLitros(),
+                            reservatorio.getUnidade().getDataCadastro().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                            new UsuarioResponseDTO(
+                                    reservatorio.getUnidade().getUsuario().getIdUsuario(),
+                                    reservatorio.getUnidade().getUsuario().getNome(),
+                                    reservatorio.getUnidade().getUsuario().getEmail()
+                            )
+                    )
+            ));
+        }
+
+        return dtoList;
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Reservatorio create(@RequestBody @Valid Reservatorio reservatorio,
-                               @AuthenticationPrincipal Usuario usuario) {
-        return service.criarReservatorio(reservatorio, usuario);
+    public ReservatorioReadDTO create(@RequestBody @Valid Reservatorio reservatorio,
+                                      @AuthenticationPrincipal Usuario usuario) {
+        var created = service.criarReservatorio(reservatorio, usuario);
+
+        return new ReservatorioReadDTO(
+                created.getIdReservatorio(),
+                created.getNome(),
+                created.getCapacidadeTotalLitros(),
+                created.getDataInstalacao().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                new UnidadeReadDTO(
+                        created.getUnidade().getIdUnidade(),
+                        created.getUnidade().getNome(),
+                        created.getUnidade().getCapacidadeTotalLitros(),
+                        created.getUnidade().getDataCadastro().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                        new UsuarioResponseDTO(
+                                created.getUnidade().getUsuario().getIdUsuario(),
+                                created.getUnidade().getUsuario().getNome(),
+                                created.getUnidade().getUsuario().getEmail()
+                        )
+                )
+        );
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<Reservatorio> get(@PathVariable Integer id, @AuthenticationPrincipal Usuario usuario) {
+    public ResponseEntity<ReservatorioReadDTO> get(@PathVariable Integer id,
+                                                   @AuthenticationPrincipal Usuario usuario) {
         log.info("Buscando reservatório " + id);
-        return ResponseEntity.ok(getReservatorio(id, usuario));
+
+        Reservatorio reservatorio = getReservatorio(id, usuario);
+
+        ReservatorioReadDTO dto = new ReservatorioReadDTO(
+                reservatorio.getIdReservatorio(),
+                reservatorio.getNome(),
+                reservatorio.getCapacidadeTotalLitros(),
+                reservatorio.getDataInstalacao().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                new UnidadeReadDTO(
+                        reservatorio.getUnidade().getIdUnidade(),
+                        reservatorio.getUnidade().getNome(),
+                        reservatorio.getUnidade().getCapacidadeTotalLitros(),
+                        reservatorio.getUnidade().getDataCadastro().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                        new UsuarioResponseDTO(
+                                reservatorio.getUnidade().getUsuario().getIdUsuario(),
+                                reservatorio.getUnidade().getUsuario().getNome(),
+                                reservatorio.getUnidade().getUsuario().getEmail()
+                        )
+                )
+        );
+
+        return ResponseEntity.ok(dto);
     }
 
     @DeleteMapping("{id}")
     public ResponseEntity<Object> destroy(@PathVariable Integer id, @AuthenticationPrincipal Usuario usuario) {
         log.info("Excluindo reservatório " + id);
-        reservatorioRepository.delete(getReservatorio(id, usuario));
+        service.deletarReservatorio(id, usuario);
         return ResponseEntity.noContent().build();
     }
 
+
     @PutMapping("{id}")
-    public ResponseEntity<Object> update(@PathVariable Integer id,
-                                         @RequestBody @Valid Reservatorio reservatorio,
-                                         @AuthenticationPrincipal Usuario usuario) {
+    public ResponseEntity<ReservatorioReadDTO> update(@PathVariable Integer id,
+                                                      @RequestBody @Valid Reservatorio reservatorio,
+                                                      @AuthenticationPrincipal Usuario usuario) {
         log.info("Atualizando reservatório " + id + " com " + reservatorio);
 
         Reservatorio oldReservatorio = getReservatorio(id, usuario);
 
-        BeanUtils.copyProperties(reservatorio, oldReservatorio, "id_reservatorio", "unidade");
+        BeanUtils.copyProperties(reservatorio, oldReservatorio, "idReservatorio", "unidade");
         reservatorioRepository.save(oldReservatorio);
 
-        return ResponseEntity.ok(oldReservatorio);
+        ReservatorioReadDTO dto = new ReservatorioReadDTO(
+                oldReservatorio.getIdReservatorio(),
+                oldReservatorio.getNome(),
+                oldReservatorio.getCapacidadeTotalLitros(),
+                oldReservatorio.getDataInstalacao().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                new UnidadeReadDTO(
+                        oldReservatorio.getUnidade().getIdUnidade(),
+                        oldReservatorio.getUnidade().getNome(),
+                        oldReservatorio.getUnidade().getCapacidadeTotalLitros(),
+                        oldReservatorio.getUnidade().getDataCadastro().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                        new UsuarioResponseDTO(
+                                oldReservatorio.getUnidade().getUsuario().getIdUsuario(),
+                                oldReservatorio.getUnidade().getUsuario().getNome(),
+                                oldReservatorio.getUnidade().getUsuario().getEmail()
+                        )
+                )
+        );
+
+        return ResponseEntity.ok(dto);
     }
 
     private Reservatorio getReservatorio(Integer id, Usuario usuario) {

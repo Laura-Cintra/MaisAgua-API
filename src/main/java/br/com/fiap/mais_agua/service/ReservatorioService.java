@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -32,32 +33,41 @@ public class ReservatorioService {
     public Reservatorio criarReservatorio(Reservatorio reservatorio, Usuario usuario) {
         log.info("Cadastrando reservatório: {}", reservatorio.getNome());
 
-        Unidade unidade = unidadeRepository.findById(reservatorio.getUnidade().getId_unidade())
+        Unidade unidade = unidadeRepository.findById(reservatorio.getUnidade().getIdUnidade())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Unidade não encontrada"));
 
-        if (!unidade.getUsuario().getId_usuario().equals(usuario.getId_usuario())) {
+        if (!unidade.getUsuario().getIdUsuario().equals(usuario.getIdUsuario())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Você não tem permissão para acessar essa unidade");
         }
 
-        if(reservatorio.getCapacidade_total_litros() > unidade.getCapacidade_total_litros()){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O reservátorio não pode ultrapassar a capacidade total de litros da unidade, que é " + unidade.getCapacidade_total_litros());
+        if (reservatorio.getCapacidadeTotalLitros() > unidade.getCapacidadeTotalLitros()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "O reservátorio não pode ultrapassar a capacidade total de litros da unidade, que é "
+                            + unidade.getCapacidadeTotalLitros());
         }
 
-        validarCapacidadeReservatorios(unidade, reservatorio.getCapacidade_total_litros());
-
+        validarCapacidadeReservatorios(unidade, reservatorio.getCapacidadeTotalLitros());
 
         reservatorio.setUnidade(unidade);
         Reservatorio novoReservatorio = reservatorioRepository.save(reservatorio);
 
-        // Cria dispositivo
-        Dispositivo dispositivo = Dispositivo.builder()
-                .data_instalacao(LocalDateTime.now())
-                .build();
-        dispositivo = dispositivoRepository.save(dispositivo);
+        List<Dispositivo> dispositivosSemVinculo = dispositivoRepository.findDispositivosSemReservatorio();
+
+        Dispositivo dispositivo;
+        if (!dispositivosSemVinculo.isEmpty()) {
+            dispositivo = dispositivosSemVinculo.get(0); // Pega o primeiro disponível
+            log.info("Associando dispositivo existente: {}", dispositivo.getIdDispositivo());
+        } else {
+            dispositivo = Dispositivo.builder()
+                    .dataInstalacao(LocalDateTime.now())
+                    .build();
+            dispositivo = dispositivoRepository.save(dispositivo);
+            log.info("Criando novo dispositivo: {}", dispositivo.getIdDispositivo());
+        }
 
         // Cria vínculo reservatorio-dispositivo
         ReservatorioDispositivo vinculo = ReservatorioDispositivo.builder()
-                .data_instalacao(LocalDateTime.now())
+                .dataInstalacao(LocalDateTime.now())
                 .reservatorio(novoReservatorio)
                 .dispositivo(dispositivo)
                 .build();
@@ -66,22 +76,42 @@ public class ReservatorioService {
         return novoReservatorio;
     }
 
+
     private void validarCapacidadeReservatorios(Unidade unidade, Integer capacidadeNovoReservatorio) {
         // Soma dos reservatórios já existentes
         Integer capacidadeTotalReservatorios = reservatorioRepository.findByUnidade(unidade)
                 .stream()
-                .mapToInt(Reservatorio::getCapacidade_total_litros)
+                .mapToInt(Reservatorio::getCapacidadeTotalLitros)
                 .sum();
 
         // Verifica se a soma atual + novo reservatório ultrapassa a capacidade da unidade
-        if ((capacidadeTotalReservatorios + capacidadeNovoReservatorio) > unidade.getCapacidade_total_litros()) {
+        if ((capacidadeTotalReservatorios + capacidadeNovoReservatorio) > unidade.getCapacidadeTotalLitros()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "A capacidade total dos reservatórios excede a capacidade da unidade. " +
-                            "Capacidade da unidade: " + unidade.getCapacidade_total_litros() + " litros. " +
+                            "Capacidade da unidade: " + unidade.getCapacidadeTotalLitros() + " litros. " +
                             "Capacidade já utilizada: " + capacidadeTotalReservatorios + " litros. " +
                             "Tentando adicionar mais: " + capacidadeNovoReservatorio + " litros.");
         }
     }
+
+    @Transactional
+    public void deletarReservatorio(Integer id, Usuario usuario) {
+        Reservatorio reservatorio = reservatorioRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Reservatório não encontrado"));
+
+        // Verifica se o reservatório pertence ao usuário logado
+        if (!reservatorio.getUnidade().getUsuario().getIdUsuario().equals(usuario.getIdUsuario())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Você não tem permissão para acessar este reservatório");
+        }
+
+        // Remove os vínculos com dispositivos
+        var vinculos = reservatorioDispositivoRepository.findByReservatorio(reservatorio);
+        reservatorioDispositivoRepository.deleteAll(vinculos);
+
+        // Remove o reservatório
+        reservatorioRepository.delete(reservatorio);
+    }
+
 
 
 
