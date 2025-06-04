@@ -3,7 +3,9 @@ package br.com.fiap.mais_agua.service;
 import br.com.fiap.mais_agua.model.Dispositivo;
 import br.com.fiap.mais_agua.model.LeituraDispositivo;
 import br.com.fiap.mais_agua.repository.DispositivoRepository;
+import br.com.fiap.mais_agua.repository.HistoricoReservatorioRepository;
 import br.com.fiap.mais_agua.repository.LeituraDispositivoRepository;
+import br.com.fiap.mais_agua.repository.ReservatorioDispositivoRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -25,40 +27,69 @@ public class LeituraDispositivoService {
     @Autowired
     private DispositivoRepository dispositivoRepository;
 
+    @Autowired
+    private ReservatorioDispositivoRepository reservatorioDispositivoRepository;
+
+    @Autowired
+    private HistoricoReservatorioRepository historicoRepository;
+
     Random random = new Random();
 
     /**
-     * Gera automaticamente leituras de todos os dispositivos cadastrados a cada 3 dias às 9h da manhã
+     * Gera leituras dos dispositivos de acordo com o último nível do histórico do reservatório
      */
-    @Scheduled(cron = "0 0 9 * * *")
-    public void gerarLeituraAutomatica() {
-        log.info("Iniciando geração automática de leitura dos dispositivos...");
+    @Scheduled(cron = "0 20 9 * * *") // Executa todos os dias às 9:20
+    public void gerarLeitura() {
+        System.out.println("Iniciando geração de leitura...");
 
         List<Dispositivo> dispositivos = dispositivoRepository.findAll();
 
         for (Dispositivo dispositivo : dispositivos) {
-            LeituraDispositivo leitura = new LeituraDispositivo();
+            var reservatorioOpt = reservatorioDispositivoRepository.findReservatorioByDispositivo(dispositivo.getIdDispositivo());
+
+            if (reservatorioOpt.isEmpty()) {
+                System.out.println("Dispositivo " + dispositivo.getIdDispositivo() + " não tem reservatório. Pulando...");
+                continue;
+            }
+
+            var reservatorio = reservatorioOpt.get();
+
+            var historicoOpt = historicoRepository
+                    .findTopByReservatorioIdReservatorioOrderByDataHoraDesc(reservatorio.getIdReservatorio());
+
+            if (historicoOpt.isEmpty()) {
+                System.out.println("Reservatório " + reservatorio.getIdReservatorio() + " sem histórico. Pulando...");
+                continue;
+            }
+
+            var historico = historicoOpt.get();
+
+            // Cálculo do nível em %
+            int capacidade = reservatorio.getCapacidadeTotalLitros();
+            int nivelLitros = historico.getNivelLitros();
+            int nivelPct = capacidade > 0 ? (int) ((nivelLitros * 100.0) / capacidade) : 0;
+
+            // Gerar valores aleatórios
+            int turbidez = random.nextInt(101); // 0 a 100
+            double ph = 5 + (9 * random.nextDouble()); // entre 5 e 14
+
+            // Criar a leitura
+            var leitura = new LeituraDispositivo();
             leitura.setDispositivo(dispositivo);
             leitura.setDataHora(LocalDateTime.now());
-
-            // Gera nível percentual entre 10% e 100%
-            int nivelPct = random.nextInt(91) + 10;
             leitura.setNivelPct(nivelPct);
-
-            // Gera turbidez entre 0 e 100 NTU (exemplo — você pode ajustar)
-            int turbidez = random.nextInt(101);
             leitura.setTurbidezNtu(turbidez);
+            leitura.setPhInt(BigDecimal.valueOf(ph).setScale(2, RoundingMode.HALF_UP));
 
-            // Gera pH entre 5.00 e 14.00 (água não potável)
-            double ph = 5 + (14 - 5) * random.nextDouble();
-            leitura.setPh_int(BigDecimal.valueOf(ph).setScale(2, RoundingMode.HALF_UP));
-
+            // Salvar no banco
             leituraRepository.save(leitura);
 
-            log.info("Leitura gerada para dispositivo ID {} - Nível: {}%, Turbidez: {} NTU, pH: {}",
-                    dispositivo.getId_dispositivo(), nivelPct, turbidez, leitura.getPh_int());
+            System.out.println("Leitura salva -> Dispositivo " + dispositivo.getIdDispositivo() +
+                    " | Nível: " + nivelPct + "%" +
+                    " | Turbidez: " + turbidez +
+                    " | pH: " + leitura.getPhInt());
         }
 
-        log.info("Geração de leitura concluída.");
+        System.out.println("Finalizou geração de leituras.");
     }
 }
