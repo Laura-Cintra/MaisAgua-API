@@ -2,10 +2,13 @@ package br.com.fiap.mais_agua.controller;
 
 import br.com.fiap.mais_agua.model.DTO.CadastroDTO;
 import br.com.fiap.mais_agua.model.DTO.Credentials;
+import br.com.fiap.mais_agua.model.DTO.PerfilDTO;
 import br.com.fiap.mais_agua.model.DTO.UsuarioResponseDTO;
 import br.com.fiap.mais_agua.model.Token;
 import br.com.fiap.mais_agua.model.Usuario;
+import br.com.fiap.mais_agua.repository.ReservatorioRepository;
 import br.com.fiap.mais_agua.repository.UsuarioRepository;
+import br.com.fiap.mais_agua.service.PerfilService;
 import br.com.fiap.mais_agua.service.TokenService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,14 +16,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
-public class AuthController {
+public class UsuarioController {
     @Autowired
     private TokenService tokenService;
     @Autowired
@@ -30,6 +32,10 @@ public class AuthController {
     private UsuarioRepository usuarioRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private ReservatorioRepository reservatorioRepository;
+    @Autowired
+    private PerfilService perfilService;
 
     @PostMapping("/login")
     public Token login(@RequestBody Credentials credentials){
@@ -52,11 +58,16 @@ public class AuthController {
 
         usuario = usuarioRepository.save(usuario);
 
-        UsuarioResponseDTO responseDTO = new UsuarioResponseDTO(usuario.getId_usuario(), usuario.getNome(), usuario.getEmail());
+        UsuarioResponseDTO responseDTO = new UsuarioResponseDTO(usuario.getIdUsuario(), usuario.getNome(), usuario.getEmail());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);
     }
 
-
+    @GetMapping("/perfil/{idReservatorio}")
+    public ResponseEntity<PerfilDTO> readPerfil(@PathVariable Integer idReservatorio,
+                                                @AuthenticationPrincipal Usuario usuario) {
+        PerfilDTO perfilDTO = perfilService.getPerfil(idReservatorio, usuario);
+        return ResponseEntity.ok(perfilDTO);
+    }
 
 }
