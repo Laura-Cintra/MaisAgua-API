@@ -3,6 +3,7 @@ package br.com.fiap.mais_agua.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -16,15 +17,19 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     @Autowired
-    private  AuthFilter authFilter;
+    private AuthFilter authFilter;
+
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http.authorizeHttpRequests(
                         auth -> auth
                                 .requestMatchers("/login").permitAll()
                                 .requestMatchers("/cadastro").permitAll()
-                                .anyRequest().authenticated()
-                )
+                                .requestMatchers("/cadastro-completo").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/unidade/**").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/endereco/**").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/paises/**", "/estados/**", "/cidades/**").permitAll()
+                                .anyRequest().authenticated())
                 .csrf(csrf -> csrf.disable())
                 .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
                 .httpBasic(Customizer.withDefaults())
@@ -32,7 +37,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    PasswordEncoder passwordEncoder(){
+    PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
@@ -41,4 +46,3 @@ public class SecurityConfig {
         return config.getAuthenticationManager();
     }
 }
-
