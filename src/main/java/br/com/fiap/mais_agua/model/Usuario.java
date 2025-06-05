@@ -16,7 +16,7 @@ import java.util.Collection;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-@EqualsAndHashCode(of = "id_usuario")
+@EqualsAndHashCode(of = "idUsuario")
 public class Usuario implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

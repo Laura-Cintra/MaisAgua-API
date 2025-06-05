@@ -60,7 +60,7 @@ public class UsuarioController {
         Usuario usuario = new Usuario();
         usuario.setNome(dto.nome());
         usuario.setEmail(dto.email());
-        usuario.setSenha(passwordEncoder.encode(dto.senha())); // Codificando a senha
+        usuario.setSenha(passwordEncoder.encode(dto.senha()));
 
         usuario = usuarioRepository.save(usuario);
 

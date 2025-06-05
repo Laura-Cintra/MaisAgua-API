@@ -33,8 +33,9 @@ public class HistoricoReservatorioController {
 
     @GetMapping
     public List<HistoricoReservatorioDTO> index(@AuthenticationPrincipal Usuario usuario) {
-        return historicoRepository.findAll().stream()
-                .filter(h -> h.getReservatorio().getUnidade().getUsuario().equals(usuario))
+        List<HistoricoReservatorio> historicos = historicoRepository.findByUsuario(usuario);
+
+        return historicos.stream()
                 .map(this::toDTO)
                 .toList();
     }
@@ -46,6 +47,8 @@ public class HistoricoReservatorioController {
         log.info("Cadastrando histórico");
 
         Reservatorio reservatorio = getReservatorio(historico.getReservatorio().getIdReservatorio(), usuario);
+        validarNivelLitros(historico.getNivelLitros(), reservatorio.getCapacidadeTotalLitros());
+
         StatusReservatorio status = getStatus(historico.getStatus().getId());
 
         historico.setReservatorio(reservatorio);
@@ -61,14 +64,17 @@ public class HistoricoReservatorioController {
         return ResponseEntity.ok(toDTO(getHistorico(id, usuario)));
     }
 
+    // DELETE - Deletar histórico pelo ID
     @DeleteMapping("{id}")
     public ResponseEntity<Object> destroy(@PathVariable Integer id,
                                           @AuthenticationPrincipal Usuario usuario) {
         var historico = getHistorico(id, usuario);
+
         historicoRepository.delete(historico);
         return ResponseEntity.noContent().build();
     }
 
+    // PUT - Atualizar um histórico específico pelo ID
     @PutMapping("{id}")
     public ResponseEntity<HistoricoReservatorioDTO> update(@PathVariable Integer id,
                                                            @RequestBody @Valid HistoricoReservatorio historico,
@@ -76,6 +82,8 @@ public class HistoricoReservatorioController {
         var historicoDB = getHistorico(id, usuario);
 
         Reservatorio reservatorio = getReservatorio(historico.getReservatorio().getIdReservatorio(), usuario);
+        validarNivelLitros(historico.getNivelLitros(), reservatorio.getCapacidadeTotalLitros());
+
         StatusReservatorio status = getStatus(historico.getStatus().getId());
 
         historico.setReservatorio(reservatorio);
@@ -87,7 +95,13 @@ public class HistoricoReservatorioController {
         return ResponseEntity.ok(toDTO(historicoDB));
     }
 
-    // DTO Mapping
+    private void validarNivelLitros(int nivelLitros, int capacidadeTotalLitros) {
+        if (nivelLitros > capacidadeTotalLitros) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "O nível de litros não pode ser maior que a capacidade total do reservatório.");
+        }
+    }
+
     private HistoricoReservatorioDTO toDTO(HistoricoReservatorio entity) {
         var unidade = entity.getReservatorio().getUnidade();
         var usuario = unidade.getUsuario();

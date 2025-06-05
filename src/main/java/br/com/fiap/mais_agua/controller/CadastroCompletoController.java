@@ -1,6 +1,7 @@
 package br.com.fiap.mais_agua.controller;
 
 import br.com.fiap.mais_agua.model.DTO.CadastroCompletoDTO;
+import br.com.fiap.mais_agua.model.DTO.CadastroCompletoResponseDTO;
 import br.com.fiap.mais_agua.service.CadastroCompletoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +17,7 @@ public class CadastroCompletoController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public CadastroCompletoDTO cadastrar(@RequestBody @Valid CadastroCompletoDTO dto) {
+    public CadastroCompletoResponseDTO cadastrar(@RequestBody @Valid CadastroCompletoDTO dto) {
         return service.cadastrar(dto);
     }
 }

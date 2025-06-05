@@ -30,36 +30,47 @@ public class PerfilService {
 
     @Autowired
     private LeituraDispositivoRepository leituraDispositivoRepository;
+
     @Autowired
     private UsuarioRepository usuarioRepository;
 
     public PerfilDTO getPerfil(Integer idReservatorio, Usuario usuario) {
-        List<Endereco> enderecos = enderecoRepository.findByUnidadeUsuario(usuario);
+        // 1. Buscar o ReservatórioDispositivo associado ao idReservatorio
+        ReservatorioDispositivo reservatorioDispositivo = reservatorioDispositivoRepository
+                .findByReservatorioIdReservatorio(idReservatorio)
+                .orElseThrow(() -> new RuntimeException("Reservatório não encontrado"));  // Erro 404 caso não encontre
 
+        // 2. Verificar se o reservatório pertence ao usuário autenticado
+        if (!reservatorioDispositivo.getReservatorio().getUnidade().getUsuario().getIdUsuario().equals(usuario.getIdUsuario())) {
+            throw new RuntimeException("Você não tem permissão para acessar este reservatório");  // Erro 403 caso não pertença ao usuário
+        }
+
+        // 3. Buscar o endereço do usuário
+        List<Endereco> enderecos = enderecoRepository.findByUnidadeUsuario(usuario);
         Endereco endereco = enderecos.stream()
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Endereço não encontrado"));
 
-        ReservatorioDispositivo reservatorioDispositivo = reservatorioDispositivoRepository
-                .findByReservatorioIdReservatorio(idReservatorio)
-                .orElseThrow(() -> new RuntimeException("ReservatórioDispositivo não encontrado"));
-
         Reservatorio reservatorio = reservatorioDispositivo.getReservatorio();
         Dispositivo dispositivo = reservatorioDispositivo.getDispositivo();
 
+        // 4. Buscar o último Histórico de Reservatório
         HistoricoReservatorio historicoReservatorio = historicoReservatorioRepository
                 .findTopByReservatorioIdReservatorioOrderByDataHoraDesc(reservatorio.getIdReservatorio())
                 .orElse(null);
 
+        // 5. Buscar a última Leitura de Dispositivo
         LeituraDispositivo leituraDispositivo = leituraDispositivoRepository
                 .findTopByDispositivoIdDispositivoOrderByDataHoraDesc(dispositivo.getIdDispositivo())
                 .orElse(null);
 
+        // 6. Buscar o usuário completo
         Optional<Usuario> usuarioRepoOptional = usuarioRepository.findByIdUsuario(usuario.getIdUsuario());
 
         if (usuarioRepoOptional.isPresent()) {
             Usuario usuarioRepo = usuarioRepoOptional.get();
 
+            // 7. Montar e retornar o PerfilDTO com os dados do perfil do usuário, histórico e leitura do dispositivo
             return PerfilDTO.builder()
                     .nome(usuarioRepo.getNome())
                     .logradouro(endereco.getLogradouro())

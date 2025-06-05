@@ -13,4 +13,5 @@ public interface ReservatorioRepository extends JpaRepository<Reservatorio, Inte
     List<Reservatorio> findByUnidade(Unidade unidade);
     Reservatorio findByIdReservatorio(Integer idReservatorio);
 
+
 }

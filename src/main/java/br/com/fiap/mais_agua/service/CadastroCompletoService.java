@@ -2,9 +2,11 @@ package br.com.fiap.mais_agua.service;
 
 import br.com.fiap.mais_agua.model.*;
 import br.com.fiap.mais_agua.model.DTO.CadastroCompletoDTO;
+import br.com.fiap.mais_agua.model.DTO.CadastroCompletoResponseDTO;
 import br.com.fiap.mais_agua.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -17,14 +19,19 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class CadastroCompletoService {
 
-    private final UsuarioRepository usuarioRepository;
-    private final UnidadeRepository unidadeRepository;
-    private final EnderecoRepository enderecoRepository;
-    private final CidadeRepository cidadeRepository;
-    private final PasswordEncoder passwordEncoder;
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+    @Autowired
+    private UnidadeRepository unidadeRepository;
+    @Autowired
+    private EnderecoRepository enderecoRepository;
+    @Autowired
+    private CidadeRepository cidadeRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Transactional
-    public CadastroCompletoDTO cadastrar(CadastroCompletoDTO dto) {
+    public CadastroCompletoResponseDTO cadastrar(CadastroCompletoDTO dto) {
         // 1 - Verificar se o e-mail já está cadastrado
         if (usuarioRepository.findByEmail(dto.email()).isPresent()) {
             throw new ResponseStatusException(BAD_REQUEST, "E-mail já cadastrado");
@@ -34,7 +41,7 @@ public class CadastroCompletoService {
         Usuario usuario = Usuario.builder()
                 .nome(dto.nomeUsuario())
                 .email(dto.email())
-                .senha(passwordEncoder.encode(dto.senha()))
+                .senha(passwordEncoder.encode(dto.senha())) // A senha continua sendo cadastrada, mas não será retornada
                 .build();
         usuario = usuarioRepository.save(usuario);
 
@@ -62,18 +69,17 @@ public class CadastroCompletoService {
                 .build();
         enderecoRepository.save(endereco);
 
-        // 6 - Retornar o CadastroCompletoDTO com os dados criados
-        return CadastroCompletoDTO.builder()
+        return CadastroCompletoResponseDTO.builder()
                 .nomeUsuario(usuario.getNome())
                 .email(usuario.getEmail())
-                .senha(dto.senha())  // Se não for para retornar a senha, remova essa linha
                 .nomeUnidade(unidade.getNome())
                 .capacidadeTotalLitros(unidade.getCapacidadeTotalLitros())
                 .logradouro(endereco.getLogradouro())
                 .numero(endereco.getNumero())
                 .complemento(endereco.getComplemento())
                 .cep(endereco.getCep())
-                .idCidade(cidade.getId())  // Retornando o ID da cidade associada
+                .idCidade(cidade.getId())
+                .idUsuario(usuario.getIdUsuario())
                 .build();
     }
 }

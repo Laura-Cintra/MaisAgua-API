@@ -15,6 +15,8 @@ public interface ReservatorioDispositivoRepository extends JpaRepository<Reserva
     List<ReservatorioDispositivo> findByReservatorio(Reservatorio reservatorio);
     Optional<ReservatorioDispositivo> findByReservatorioIdReservatorio(Integer idReservatorio);
 
+    List<ReservatorioDispositivo> findByReservatorio_Unidade_Usuario_IdUsuario(Integer idUsuario);
+
     @Query("SELECT rd.reservatorio FROM ReservatorioDispositivo rd " +
             "WHERE rd.dispositivo.idDispositivo = :idDispositivo")
     Optional<Reservatorio> findReservatorioByDispositivo(@Param("idDispositivo") Integer idDispositivo);

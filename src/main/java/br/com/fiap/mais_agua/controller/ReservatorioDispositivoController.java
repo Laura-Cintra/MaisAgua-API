@@ -21,12 +21,19 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
 @RequestMapping("/reservatorio-dispositivo")
 @Slf4j
 public class ReservatorioDispositivoController {
+
+    public record ReservatorioDispositivoFilters(
+            Integer idReservatorio,   // Filtro para o reservatório
+            Integer idDispositivo,    // Filtro para o dispositivo
+            LocalDate dataInstalacao  // Filtro para a data de instalação
+    ) {}
 
     @Autowired
     private ReservatorioDispositivoRepository reservatorioSensorRepository;
@@ -67,6 +74,7 @@ public class ReservatorioDispositivoController {
         return ResponseEntity.ok(toDTO(getReservatorioSensor(id, usuario)));
     }
 
+
     @DeleteMapping("{id}")
     public ResponseEntity<Object> destroy(@PathVariable Integer id,
                                           @AuthenticationPrincipal Usuario usuario) {
@@ -74,6 +82,7 @@ public class ReservatorioDispositivoController {
         reservatorioSensorRepository.delete(reservatorioSensor);
         return ResponseEntity.noContent().build();
     }
+
 
     @PutMapping("{id}")
     public ResponseEntity<ReservatorioDispositivoDTO> update(@PathVariable Integer id,
@@ -92,6 +101,7 @@ public class ReservatorioDispositivoController {
 
         return ResponseEntity.ok(toDTO(oldRS));
     }
+
 
     // Método auxiliar para conversão de entidade para DTO
     private ReservatorioDispositivoDTO toDTO(ReservatorioDispositivo entity) {
@@ -127,19 +137,20 @@ public class ReservatorioDispositivoController {
         if (!rs.getReservatorio().getUnidade().getUsuario().equals(usuario)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Você não tem permissão para acessar este sensor");
         }
-
         return rs;
     }
+
 
     private Reservatorio getReservatorio(Integer id, Usuario usuario) {
         var r = reservatorioRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Reservatorio não encontrado"));
+
         if (!r.getUnidade().getUsuario().equals(usuario)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Você não tem permissão para alterar este reservatório");
         }
-
         return r;
     }
+
 
     private Dispositivo getDispositivo(Integer id) {
         return dispositivoRepository.findById(id)

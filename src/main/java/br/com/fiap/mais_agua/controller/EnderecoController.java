@@ -74,6 +74,7 @@ public class EnderecoController {
         return ResponseEntity.ok(enderecoDTO);
     }
 
+
     @DeleteMapping("{id}")
     public ResponseEntity<Object> destroy(@PathVariable Integer id, @AuthenticationPrincipal Usuario usuario) {
         log.info("Excluindo endereço " + id);
@@ -87,6 +88,7 @@ public class EnderecoController {
         enderecoRepository.delete(endereco);
         return ResponseEntity.noContent().build();
     }
+
 
     @PutMapping("{id}")
     public ResponseEntity<Object> update(@PathVariable Integer id,
