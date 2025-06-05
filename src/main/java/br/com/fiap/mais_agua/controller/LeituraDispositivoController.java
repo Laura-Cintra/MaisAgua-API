@@ -46,7 +46,7 @@ public class LeituraDispositivoController {
                                      @AuthenticationPrincipal Usuario usuario) {
         log.info("Cadastrando leitura de dispositivo");
 
-        Dispositivo dispositivo = getDispositivoDoUsuario(leitura.getDispositivo().getId_dispositivo(), usuario);
+        Dispositivo dispositivo = getDispositivoDoUsuario(leitura.getDispositivo().getIdDispositivo(), usuario);
 
         leitura.setDispositivo(dispositivo);
 
@@ -76,7 +76,7 @@ public class LeituraDispositivoController {
                                          @AuthenticationPrincipal Usuario usuario) {
         var leituraExistente = getLeituraDoUsuario(id, usuario);
 
-        Dispositivo dispositivo = getDispositivoDoUsuario(leitura.getDispositivo().getId_dispositivo(), usuario);
+        Dispositivo dispositivo = getDispositivoDoUsuario(leitura.getDispositivo().getIdDispositivo(), usuario);
 
         leitura.setDispositivo(dispositivo);
 

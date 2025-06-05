@@ -38,11 +38,17 @@ public class UsuarioController {
     private PerfilService perfilService;
 
     @PostMapping("/login")
-    public Token login(@RequestBody Credentials credentials){
-        var auth = new UsernamePasswordAuthenticationToken(credentials.email(), credentials.senha());
-        var user = (Usuario) authenticationManager.authenticate(auth).getPrincipal();
+    public ResponseEntity<Token> login(@RequestBody Credentials credentials) {
+        try {
+            var auth = new UsernamePasswordAuthenticationToken(credentials.email(), credentials.senha());
+            var user = (Usuario) authenticationManager.authenticate(auth).getPrincipal();
 
-        return tokenService.createToken(user);
+            Token token = tokenService.createToken(user);
+
+            return ResponseEntity.ok(token);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "E-mail ou senha incorretos!");
+        }
     }
 
     @PostMapping("/cadastro")

@@ -6,7 +6,7 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 public class UsuarioResponseDTO {
-    private Integer id_usuario;
+    private Integer idUsuario;
     private String nome;
     private String email;
 }

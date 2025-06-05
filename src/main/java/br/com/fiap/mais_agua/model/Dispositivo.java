@@ -15,9 +15,10 @@ public class Dispositivo {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id_dispositivo;
+    @Column(name = "id_dispositivo", nullable = false, updatable = false)
+    private Integer idDispositivo;
 
     @Column(name = "data_instalacao", nullable = false, updatable = false,
             columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private LocalDateTime data_instalacao= LocalDateTime.now();
+    private LocalDateTime dataInstalacao= LocalDateTime.now();
 }

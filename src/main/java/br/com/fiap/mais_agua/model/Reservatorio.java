@@ -20,20 +20,22 @@ public class Reservatorio {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id_reservatorio;
+    @Column(name = "id_reservatorio", nullable = false, updatable = false)
+    private Integer idReservatorio;
 
     @NotBlank(message = "Campo obrigatório")
     private String nome;
 
     @NotNull(message = "Campo obrigatório")
-    private Integer capacidade_total_litros;
+    @Column(name = "capacidade_total_litros", nullable = false)
+    private Integer capacidadeTotalLitros;
 
     @Column(name = "data_instalacao", nullable = false, updatable = false,
             columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private LocalDateTime data_instalacao = LocalDateTime.now();
+    private LocalDateTime dataInstalacao = LocalDateTime.now();
 
     @ManyToOne
-    @JoinColumn(name = "id_unidade", referencedColumnName = "id_unidade", nullable = false)
+    @JoinColumn(name = "id_unidade", referencedColumnName = "id_unidade")
     private Unidade unidade;
 
 }

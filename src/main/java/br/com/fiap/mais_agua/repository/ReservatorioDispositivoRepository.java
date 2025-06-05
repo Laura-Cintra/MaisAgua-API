@@ -13,6 +13,7 @@ import java.util.Optional;
 public interface ReservatorioDispositivoRepository extends JpaRepository<ReservatorioDispositivo, Integer> {
     List<ReservatorioDispositivo> findByDispositivo(Dispositivo dispositivo);
     List<ReservatorioDispositivo> findByReservatorio(Reservatorio reservatorio);
+    Optional<ReservatorioDispositivo> findByReservatorioIdReservatorio(Integer idReservatorio);
 
     @Query("SELECT rd.reservatorio FROM ReservatorioDispositivo rd " +
             "WHERE rd.dispositivo.idDispositivo = :idDispositivo")

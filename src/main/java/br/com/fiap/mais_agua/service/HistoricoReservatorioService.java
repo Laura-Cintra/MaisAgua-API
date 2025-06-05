@@ -34,7 +34,7 @@ public class HistoricoReservatorioService {
         List<Reservatorio> reservatorios = reservatorioRepository.findAll();
 
         for (Reservatorio reservatorio : reservatorios) {
-            int capacidadeMaxima = reservatorio.getCapacidade_total_litros();
+            int capacidadeMaxima = reservatorio.getCapacidadeTotalLitros();
 
             // Gerar nível aleatório entre 5% e 100% da capacidade
             int nivelLitros = gerarNivelAleatorio(capacidadeMaxima);

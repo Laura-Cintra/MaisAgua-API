@@ -14,13 +14,13 @@ public class Estado {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_estado")
+    @Column(name = "id_estado", nullable = false, updatable = false)
     private Integer id;
 
     @Column(name = "nome_estado", nullable = false, unique = true)
     private String nome;
 
     @ManyToOne
-    @JoinColumn(name = "id_pais", nullable = false)
+    @JoinColumn(name = "id_pais")
     private Pais pais;
 }

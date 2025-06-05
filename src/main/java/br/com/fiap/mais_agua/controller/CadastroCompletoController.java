@@ -16,7 +16,7 @@ public class CadastroCompletoController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public void cadastrar(@RequestBody @Valid CadastroCompletoDTO dto) {
-        service.cadastrar(dto);
+    public CadastroCompletoDTO cadastrar(@RequestBody @Valid CadastroCompletoDTO dto) {
+        return service.cadastrar(dto);
     }
 }

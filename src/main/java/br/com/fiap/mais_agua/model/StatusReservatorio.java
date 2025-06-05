@@ -11,7 +11,7 @@ public class StatusReservatorio {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_status_reservatorio")
+    @Column(name = "id_status_reservatorio",nullable = false, updatable = false)
     private Integer id;
 
     @NotBlank

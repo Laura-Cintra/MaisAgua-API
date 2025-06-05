@@ -5,7 +5,9 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 
+@Builder
 public record CadastroCompletoDTO(
         // Dados do Usuário
         @NotBlank(message = "campo obrigatório")
@@ -21,18 +23,17 @@ public record CadastroCompletoDTO(
 
         @NotBlank String nomeUnidade,
         @NotNull(message = "Campo obrigatório")
-        Integer capacidade_total_litros,
+        Integer capacidadeTotalLitros,
 
         // Dados do Endereço
-        @Column(nullable = false, length = 50)
-         String logradouro,
-
-        @Column(nullable = false)
+        @NotBlank(message = "Campo obrigatório")
+        String logradouro,
+        @NotNull(message = "Campo obrigatório")
         Integer numero,
-        @Column(length = 50)
-         String complemento,
+        String complemento,
 
-        @Column(nullable = false, length = 8)
-         String cep,
-        @NotNull Integer idCidade
+        @NotBlank(message = "Campo obrigatório")
+        String cep,
+        @NotNull(message = "Campo obrigatório")
+        Integer idCidade
 ) {}

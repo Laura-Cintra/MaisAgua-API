@@ -1,5 +1,8 @@
 package br.com.fiap.mais_agua.controller;
 
+import br.com.fiap.mais_agua.model.DTO.UnidadeReadDTO;
+import br.com.fiap.mais_agua.model.DTO.UnidadeResponseDTO;
+import br.com.fiap.mais_agua.model.DTO.UsuarioResponseDTO;
 import br.com.fiap.mais_agua.model.Unidade;
 import br.com.fiap.mais_agua.model.Usuario;
 import br.com.fiap.mais_agua.repository.UnidadeRepository;
@@ -24,23 +27,70 @@ public class UnidadeController {
 
 
     @GetMapping
-    public List<Unidade> index(@AuthenticationPrincipal Usuario usuario){
-        return unidadeRepository.findByUsuario(usuario);
+    public List<UnidadeReadDTO> index(@AuthenticationPrincipal Usuario usuario) {
+        return unidadeRepository.findByUsuario(usuario)
+                .stream()
+                .map(unidade -> {
+                    UsuarioResponseDTO usuarioDTO = new UsuarioResponseDTO(
+                            unidade.getUsuario().getIdUsuario(),
+                            unidade.getUsuario().getNome(),
+                            unidade.getUsuario().getEmail()
+                    );
+
+                    return new UnidadeReadDTO(
+                            unidade.getIdUnidade(),
+                            unidade.getNome(),
+                            unidade.getCapacidadeTotalLitros(),
+                            unidade.getDataCadastro().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                            usuarioDTO
+                    );
+                })
+                .toList();
     }
+
+
 
     @PostMapping
     @ResponseStatus(code = HttpStatus.CREATED)
-    public Unidade create(@RequestBody @Valid Unidade unidade, @AuthenticationPrincipal Usuario usuario){
+    public UnidadeResponseDTO create(@RequestBody @Valid Unidade unidade, @AuthenticationPrincipal Usuario usuario) {
         log.info("Cadastrando unidade " + unidade.getNome());
+
         unidade.setUsuario(usuario);
-        return unidadeRepository.save(unidade);
+
+        Unidade unidadeSalva = unidadeRepository.save(unidade);
+
+        UnidadeResponseDTO responseDTO = new UnidadeResponseDTO(
+                unidadeSalva.getNome(),
+                unidadeSalva.getCapacidadeTotalLitros(),
+                unidadeSalva.getUsuario().getIdUsuario());
+
+        return responseDTO;
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<Unidade> get(@PathVariable Integer id, @AuthenticationPrincipal Usuario usuario){
+    public ResponseEntity<UnidadeReadDTO> get(@PathVariable Integer id, @AuthenticationPrincipal Usuario usuario) {
         log.info("Buscando unidade " + id);
-        return ResponseEntity.ok(getUnidade(id, usuario));
+
+        Unidade unidade = getUnidade(id, usuario);
+
+        UsuarioResponseDTO usuarioDTO = new UsuarioResponseDTO(
+                unidade.getUsuario().getIdUsuario(),
+                unidade.getUsuario().getNome(),
+                unidade.getUsuario().getEmail()
+        );
+
+        UnidadeReadDTO dto = new UnidadeReadDTO(
+                unidade.getIdUnidade(),
+                unidade.getNome(),
+                unidade.getCapacidadeTotalLitros(),
+                unidade.getDataCadastro().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                usuarioDTO
+        );
+
+        return ResponseEntity.ok(dto);
     }
+
+
 
     @DeleteMapping("{id}")
     public ResponseEntity<Object> destroy (@PathVariable Integer id, @AuthenticationPrincipal Usuario usuario){
@@ -50,13 +100,32 @@ public class UnidadeController {
     }
 
     @PutMapping("{id}")
-    public ResponseEntity<Object> update(@PathVariable Integer id, @RequestBody @Valid Unidade unidade, @AuthenticationPrincipal Usuario usuario){
-        log.info("Atualizando categoria " + id + " com " + unidade);
+    public ResponseEntity<UnidadeReadDTO> update(@PathVariable Integer id, @RequestBody @Valid Unidade unidade, @AuthenticationPrincipal Usuario usuario
+    ) {
+        log.info("Atualizando unidade " + id + " com " + unidade);
+
         var oldUnidade = getUnidade(id, usuario);
-        BeanUtils.copyProperties(unidade, oldUnidade,"id_unidade", "usuario");
+
+        BeanUtils.copyProperties(unidade, oldUnidade, "idUnidade", "usuario", "dataCadastro");
         unidadeRepository.save(oldUnidade);
-        return ResponseEntity.ok(oldUnidade);
+
+        UsuarioResponseDTO usuarioDTO = new UsuarioResponseDTO(
+                oldUnidade.getUsuario().getIdUsuario(),
+                oldUnidade.getUsuario().getNome(),
+                oldUnidade.getUsuario().getEmail()
+        );
+
+        UnidadeReadDTO dto = new UnidadeReadDTO(
+                oldUnidade.getIdUnidade(),
+                oldUnidade.getNome(),
+                oldUnidade.getCapacidadeTotalLitros(),
+                oldUnidade.getDataCadastro().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                usuarioDTO
+        );
+
+        return ResponseEntity.ok(dto);
     }
+
 
     private Unidade getUnidade(Integer id, Usuario usuario){
         var unidadeFind = unidadeRepository.findById(id)

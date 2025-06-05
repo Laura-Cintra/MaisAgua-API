@@ -4,6 +4,10 @@ import br.com.fiap.mais_agua.model.Dispositivo;
 import br.com.fiap.mais_agua.model.Reservatorio;
 import br.com.fiap.mais_agua.model.ReservatorioDispositivo;
 import br.com.fiap.mais_agua.model.Usuario;
+import br.com.fiap.mais_agua.model.DTO.ReservatorioBasicoDTO;
+import br.com.fiap.mais_agua.model.DTO.ReservatorioDispositivoDTO;
+import br.com.fiap.mais_agua.model.DTO.UnidadeReadDTO;
+import br.com.fiap.mais_agua.model.DTO.UsuarioResponseDTO;
 import br.com.fiap.mais_agua.repository.DispositivoRepository;
 import br.com.fiap.mais_agua.repository.ReservatorioRepository;
 import br.com.fiap.mais_agua.repository.ReservatorioDispositivoRepository;
@@ -20,7 +24,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 
 @RestController
-@RequestMapping("/reservatorio-sensor")
+@RequestMapping("/reservatorio-dispositivo")
 @Slf4j
 public class ReservatorioDispositivoController {
 
@@ -34,33 +38,33 @@ public class ReservatorioDispositivoController {
     private DispositivoRepository dispositivoRepository;
 
     @GetMapping
-    public List<ReservatorioDispositivo> index(@AuthenticationPrincipal Usuario usuario) {
-        return reservatorioSensorRepository.findAll()
-                .stream()
+    public List<ReservatorioDispositivoDTO> index(@AuthenticationPrincipal Usuario usuario) {
+        return reservatorioSensorRepository.findAll().stream()
                 .filter(rs -> rs.getReservatorio().getUnidade().getUsuario().equals(usuario))
+                .map(this::toDTO)
                 .toList();
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ReservatorioDispositivo create(@RequestBody @Valid ReservatorioDispositivo reservatorioSensor,
-                                          @AuthenticationPrincipal Usuario usuario) {
+    public ReservatorioDispositivoDTO create(@RequestBody @Valid ReservatorioDispositivo reservatorioSensor,
+                                             @AuthenticationPrincipal Usuario usuario) {
         log.info("Cadastrando ReservatorioSensor");
 
-        Reservatorio reservatorio = getReservatorio(reservatorioSensor.getReservatorio().getId_reservatorio(), usuario);
-
-        Dispositivo dispositivo = getDispositivo(reservatorioSensor.getDispositivo().getId_dispositivo());
+        Reservatorio reservatorio = getReservatorio(reservatorioSensor.getReservatorio().getIdReservatorio(), usuario);
+        Dispositivo dispositivo = getDispositivo(reservatorioSensor.getDispositivo().getIdDispositivo());
 
         reservatorioSensor.setReservatorio(reservatorio);
         reservatorioSensor.setDispositivo(dispositivo);
 
-        return reservatorioSensorRepository.save(reservatorioSensor);
+        var saved = reservatorioSensorRepository.save(reservatorioSensor);
+        return toDTO(saved);
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<ReservatorioDispositivo> get(@PathVariable Integer id,
-                                                       @AuthenticationPrincipal Usuario usuario) {
-        return ResponseEntity.ok(getReservatorioSensor(id, usuario));
+    public ResponseEntity<ReservatorioDispositivoDTO> get(@PathVariable Integer id,
+                                                          @AuthenticationPrincipal Usuario usuario) {
+        return ResponseEntity.ok(toDTO(getReservatorioSensor(id, usuario)));
     }
 
     @DeleteMapping("{id}")
@@ -72,22 +76,48 @@ public class ReservatorioDispositivoController {
     }
 
     @PutMapping("{id}")
-    public ResponseEntity<Object> update(@PathVariable Integer id,
-                                         @RequestBody @Valid ReservatorioDispositivo reservatorioSensor,
-                                         @AuthenticationPrincipal Usuario usuario) {
+    public ResponseEntity<ReservatorioDispositivoDTO> update(@PathVariable Integer id,
+                                                             @RequestBody @Valid ReservatorioDispositivo reservatorioSensor,
+                                                             @AuthenticationPrincipal Usuario usuario) {
         var oldRS = getReservatorioSensor(id, usuario);
 
-        Reservatorio reservatorio = getReservatorio(reservatorioSensor.getReservatorio().getId_reservatorio(), usuario);
-
-        Dispositivo dispositivo = getDispositivo(reservatorioSensor.getDispositivo().getId_dispositivo());
+        Reservatorio reservatorio = getReservatorio(reservatorioSensor.getReservatorio().getIdReservatorio(), usuario);
+        Dispositivo dispositivo = getDispositivo(reservatorioSensor.getDispositivo().getIdDispositivo());
 
         reservatorioSensor.setReservatorio(reservatorio);
         reservatorioSensor.setDispositivo(dispositivo);
 
-        BeanUtils.copyProperties(reservatorioSensor, oldRS, "id_reservatorio_dispositivo");
+        BeanUtils.copyProperties(reservatorioSensor, oldRS, "idReservatorioDispositivo");
         reservatorioSensorRepository.save(oldRS);
 
-        return ResponseEntity.ok(oldRS);
+        return ResponseEntity.ok(toDTO(oldRS));
+    }
+
+    // Método auxiliar para conversão de entidade para DTO
+    private ReservatorioDispositivoDTO toDTO(ReservatorioDispositivo entity) {
+        var unidade = entity.getReservatorio().getUnidade();
+        var usuario = unidade.getUsuario();
+
+        return new ReservatorioDispositivoDTO(
+                entity.getIdReservatorioDispositivo(),
+                entity.getDataInstalacao() != null ? entity.getDataInstalacao().toString() : null,
+                new ReservatorioBasicoDTO(
+                        entity.getReservatorio().getIdReservatorio(),
+                        entity.getReservatorio().getNome(),
+                        entity.getReservatorio().getCapacidadeTotalLitros()
+                ),
+                UnidadeReadDTO.builder()
+                        .idUnidade(unidade.getIdUnidade())
+                        .nomeUnidade(unidade.getNome())
+                        .capacidadeTotalLitros(unidade.getCapacidadeTotalLitros())
+                        .dataCadastro(unidade.getDataCadastro().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+                        .usuario(new UsuarioResponseDTO(
+                                usuario.getIdUsuario(),
+                                usuario.getNome(),
+                                usuario.getEmail()
+                        ))
+                        .build()
+        );
     }
 
     private ReservatorioDispositivo getReservatorioSensor(Integer id, Usuario usuario) {
@@ -112,9 +142,7 @@ public class ReservatorioDispositivoController {
     }
 
     private Dispositivo getDispositivo(Integer id) {
-        var d = dispositivoRepository.findById(id)
+        return dispositivoRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Dispositivo não encontrado"));
-
-        return d;
     }
 }

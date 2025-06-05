@@ -13,19 +13,19 @@ public class HistoricoReservatorio {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_historico")
+    @Column(name = "id_historico", nullable = false, updatable = false)
     private Integer id;
 
     @NotNull
-    @Column(name = "nivel_litros")
+    @Column(name = "nivel_litros", nullable = false)
     private Integer nivelLitros;
 
-    @Column(name = "data_hora")
+    @Column(name = "data_hora", nullable = false)
     private LocalDateTime dataHora = LocalDateTime.now();
 
     @NotNull
     @ManyToOne
-    @JoinColumn(name = "id_reservatorio")
+    @JoinColumn(name = "id_reservatorio", nullable = false)
     private Reservatorio reservatorio;
 
     @NotNull

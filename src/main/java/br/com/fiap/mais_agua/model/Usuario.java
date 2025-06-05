@@ -20,7 +20,8 @@ import java.util.Collection;
 public class Usuario implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id_usuario;
+    @Column(name = "id_usuario", nullable = false, updatable = false)
+    private Integer idUsuario;
 
     @NotBlank(message = "campo obrigatório")
     private String nome;

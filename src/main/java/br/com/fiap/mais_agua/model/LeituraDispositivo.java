@@ -15,25 +15,26 @@ public class LeituraDispositivo {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_leitura")
+    @Column(name = "id_leitura", nullable = false, updatable = false)
     private Integer id;
 
     @NotNull
-    @Column(name = "nivel_pct")
+    @Column(name = "nivel_pct", nullable = false)
     private Integer nivelPct;
 
     @NotNull
-    @Column(name = "turbidez_ntu")
+    @Column(name = "turbidez_ntu", nullable = false)
     private Integer turbidezNtu;
 
     @NotNull
     @DecimalMin("0.00")
     @DecimalMax("14.00")
-    @Column(precision = 4, scale = 2)
-    private BigDecimal ph_int;
+    @Column(name = "ph_int", precision = 4, scale = 2, nullable = false)
+    private BigDecimal phInt;
 
 
-    @Column(name = "data_hora")
+    @Column(name = "data_hora", nullable = false, updatable = false,
+            columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime dataHora = LocalDateTime.now();
 
     @ManyToOne

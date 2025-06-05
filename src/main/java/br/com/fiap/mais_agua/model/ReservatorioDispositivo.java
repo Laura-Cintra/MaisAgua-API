@@ -16,19 +16,21 @@ public class ReservatorioDispositivo {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id_reservatorio_dispositivo;
+    @Column(name = "id_reservatorio_dispositivo", nullable = false, updatable = false)
+    private Integer idReservatorioDispositivo;
 
     @Column(name = "data_instalacao", nullable = false, updatable = false,
             columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private LocalDateTime data_instalacao= LocalDateTime.now();
+    private LocalDateTime dataInstalacao= LocalDateTime.now();
 
-    private LocalDate data_remocao;
+    @Column(name = "data_remocao")
+    private LocalDate dataRemocao;
 
     @ManyToOne
     @JoinColumn(name = "id_reservatorio", nullable = false)
     private Reservatorio reservatorio;
 
     @ManyToOne
-    @JoinColumn(name = "id_dispositivo", nullable = false)
+    @JoinColumn(name = "id_dispositivo")
     private Dispositivo dispositivo;
 }

@@ -1,7 +1,7 @@
 package br.com.fiap.mais_agua.service;
 
-// import br.com.fiap.mais_agua.model.dto.CadastroCompletoDTO;
 import br.com.fiap.mais_agua.model.*;
+import br.com.fiap.mais_agua.model.DTO.CadastroCompletoDTO;
 import br.com.fiap.mais_agua.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -24,12 +24,13 @@ public class CadastroCompletoService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public void cadastrar(br.com.fiap.mais_agua.model.DTO.CadastroCompletoDTO dto) {
-        // 1 - Cadastrar Usuário
+    public CadastroCompletoDTO cadastrar(CadastroCompletoDTO dto) {
+        // 1 - Verificar se o e-mail já está cadastrado
         if (usuarioRepository.findByEmail(dto.email()).isPresent()) {
             throw new ResponseStatusException(BAD_REQUEST, "E-mail já cadastrado");
         }
 
+        // 2 - Cadastrar Usuário
         Usuario usuario = Usuario.builder()
                 .nome(dto.nomeUsuario())
                 .email(dto.email())
@@ -37,20 +38,20 @@ public class CadastroCompletoService {
                 .build();
         usuario = usuarioRepository.save(usuario);
 
-        // 2 - Cadastrar Unidade
+        // 3 - Cadastrar Unidade
         Unidade unidade = Unidade.builder()
                 .nome(dto.nomeUnidade())
-                .capacidade_total_litros(dto.capacidade_total_litros())
+                .capacidadeTotalLitros(dto.capacidadeTotalLitros())
                 .usuario(usuario)
-                .data_cadastro(LocalDateTime.now())
+                .dataCadastro(LocalDateTime.now())
                 .build();
         unidade = unidadeRepository.save(unidade);
 
-        // 3 - Buscar cidade
+        // 4 - Buscar cidade
         Cidade cidade = cidadeRepository.findById(dto.idCidade())
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Cidade não encontrada"));
 
-        // 4 - Cadastrar Endereço
+        // 5 - Cadastrar Endereço
         Endereco endereco = Endereco.builder()
                 .logradouro(dto.logradouro())
                 .numero(dto.numero())
@@ -60,5 +61,19 @@ public class CadastroCompletoService {
                 .unidade(unidade)
                 .build();
         enderecoRepository.save(endereco);
+
+        // 6 - Retornar o CadastroCompletoDTO com os dados criados
+        return CadastroCompletoDTO.builder()
+                .nomeUsuario(usuario.getNome())
+                .email(usuario.getEmail())
+                .senha(dto.senha())  // Se não for para retornar a senha, remova essa linha
+                .nomeUnidade(unidade.getNome())
+                .capacidadeTotalLitros(unidade.getCapacidadeTotalLitros())
+                .logradouro(endereco.getLogradouro())
+                .numero(endereco.getNumero())
+                .complemento(endereco.getComplemento())
+                .cep(endereco.getCep())
+                .idCidade(cidade.getId())  // Retornando o ID da cidade associada
+                .build();
     }
 }
