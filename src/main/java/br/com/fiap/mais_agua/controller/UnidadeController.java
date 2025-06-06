@@ -6,6 +6,7 @@ import br.com.fiap.mais_agua.model.DTO.UsuarioResponseDTO;
 import br.com.fiap.mais_agua.model.Unidade;
 import br.com.fiap.mais_agua.model.Usuario;
 import br.com.fiap.mais_agua.repository.UnidadeRepository;
+import br.com.fiap.mais_agua.service.UnidadeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -29,6 +30,8 @@ public class UnidadeController {
     @Autowired
     private UnidadeRepository unidadeRepository;
 
+    @Autowired
+    private UnidadeService unidadeService;
 
     @GetMapping
     @Operation(
@@ -59,7 +62,6 @@ public class UnidadeController {
                 })
                 .toList();
     }
-
 
     @PostMapping
     @ResponseStatus(code = HttpStatus.CREATED)
@@ -118,22 +120,26 @@ public class UnidadeController {
         return ResponseEntity.ok(dto);
     }
 
-
     @DeleteMapping("{id}")
     @Operation(
             summary = "Excluir unidade",
-            description = "Remove uma unidade cadastrada pelo usuário autenticado.",
+            description = "Remove uma unidade e todos os reservatórios associados, se forem do usuário autenticado.",
             responses = {
                     @ApiResponse(responseCode = "204", description = "Unidade excluída com sucesso"),
                     @ApiResponse(responseCode = "403", description = "Usuário não autorizado"),
-                    @ApiResponse(responseCode = "404", description = "Unidade não encontrada")
+                    @ApiResponse(responseCode = "404", description = "Unidade não encontrada"),
+                    @ApiResponse(responseCode = "409", description = "Não é possível excluir a unidade, porque um reservatório vinculado possui histórico.")
             }
     )
-    public ResponseEntity<Object> destroy (@PathVariable Integer id, @AuthenticationPrincipal Usuario usuario){
-        log.info("Excluindo unidade " + id);
-        unidadeRepository.delete(getUnidade(id, usuario));
+    public ResponseEntity<Void> destroy(
+            @PathVariable Integer id,
+            @AuthenticationPrincipal Usuario usuario
+    ) {
+        log.info("Excluindo unidade {}", id);
+        unidadeService.deletarUnidade(id, usuario);
         return ResponseEntity.noContent().build();
     }
+
 
     @PutMapping("{id}")
     @Operation(

@@ -151,7 +151,8 @@ public class ReservatorioController {
             responses = {
                     @ApiResponse(responseCode = "204", description = "Reservatório excluído com sucesso"),
                     @ApiResponse(responseCode = "403", description = "Acesso negado"),
-                    @ApiResponse(responseCode = "404", description = "Reservatório não encontrado")
+                    @ApiResponse(responseCode = "404", description = "Reservatório não encontrado"),
+                    @ApiResponse(responseCode = "409", description = "Não é possível excluir o reservatório, porque está vinculado à algum histórico.")
             }
     )
     public ResponseEntity<Object> destroy(@PathVariable Integer id, @AuthenticationPrincipal Usuario usuario) {

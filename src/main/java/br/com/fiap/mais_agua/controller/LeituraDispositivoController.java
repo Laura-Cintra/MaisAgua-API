@@ -32,7 +32,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/leitura-dispositivo")
 @Slf4j
-@Tag(name = "Dispositivo", description = "Leituras geradas automaticamente ou manualmente a partir dos dispositivos conectados aos reservatórios")
+@Tag(name = "Leituras de Dispositivos", description = "Leituras geradas automaticamente ou manualmente a partir dos dispositivos conectados aos reservatórios")
 public class LeituraDispositivoController {
 
     @Autowired
@@ -49,6 +49,14 @@ public class LeituraDispositivoController {
     public record LeituraDispositivoFilter(Integer idReservatorio) {}
 
     @GetMapping
+    @Operation(
+            summary = "Listar leituras dos dispositivos",
+            description = "Retorna uma lista paginada de leituras com filtro opcional de ID do reservatório.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Leituras encontradas com sucesso"),
+                    @ApiResponse(responseCode = "403", description = "O usuário autenticado não tem permissão para acessar o reservatório informado.")
+            }
+    )
     public Page<LeituraDispositivo> index(
             @AuthenticationPrincipal Usuario usuario,
             @ParameterObject LeituraDispositivoFilter filters,
@@ -63,14 +71,10 @@ public class LeituraDispositivoController {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Você não tem acesso a esse reservatório");
             }
         }
-
         Specification<LeituraDispositivo> spec = LeituraDispositivoSpecification.withFilters(filters, usuario);
 
         return leituraRepository.findAll(spec, pageable);
     }
-
-
-
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)

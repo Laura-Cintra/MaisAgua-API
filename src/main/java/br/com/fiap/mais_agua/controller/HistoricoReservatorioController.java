@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -49,15 +50,12 @@ public class HistoricoReservatorioController {
     )
     public List<HistoricoReservatorioDTO> index(
             @AuthenticationPrincipal Usuario usuario,
-            HistoricoReservatorioFilters filters) {
+            @ParameterObject HistoricoReservatorioFilters filters) {
 
-        // Cria a especificação com os filtros e o usuário logado
         var specification = HistoricoReservatorioSpecification.withFilters(filters, usuario);
 
-        // Aplica a especificação para filtrar os registros do usuário
         List<HistoricoReservatorio> historicos = historicoRepository.findAll(specification);
 
-        // Retorna os históricos convertidos para DTO
         return historicos.stream()
                 .map(this::toDTO)
                 .toList();

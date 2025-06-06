@@ -27,6 +27,8 @@ public class ReservatorioService {
     @Autowired
 
     private ReservatorioDispositivoRepository reservatorioDispositivoRepository;
+    @Autowired
+    private HistoricoReservatorioRepository historicoReservatorioRepository;
 
     // executar um conjunto de operações no bd em uma unica transação
     @Transactional
@@ -65,7 +67,6 @@ public class ReservatorioService {
             log.info("Criando novo dispositivo: {}", dispositivo.getIdDispositivo());
         }
 
-        // Cria vínculo reservatorio-dispositivo
         ReservatorioDispositivo vinculo = ReservatorioDispositivo.builder()
                 .dataInstalacao(LocalDateTime.now())
                 .reservatorio(novoReservatorio)
@@ -99,20 +100,16 @@ public class ReservatorioService {
         Reservatorio reservatorio = reservatorioRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Reservatório não encontrado"));
 
-        // Verifica se o reservatório pertence ao usuário logado
         if (!reservatorio.getUnidade().getUsuario().getIdUsuario().equals(usuario.getIdUsuario())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Você não tem permissão para acessar este reservatório");
         }
+        if (historicoReservatorioRepository.existsByReservatorio(reservatorio)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Não é possível apagar o reservatório, pois há histórico vinculado.");
+        }
 
-        // Remove os vínculos com dispositivos
         var vinculos = reservatorioDispositivoRepository.findByReservatorio(reservatorio);
         reservatorioDispositivoRepository.deleteAll(vinculos);
 
-        // Remove o reservatório
         reservatorioRepository.delete(reservatorio);
     }
-
-
-
-
 }
