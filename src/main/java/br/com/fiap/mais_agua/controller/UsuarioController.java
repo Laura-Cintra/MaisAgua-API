@@ -10,6 +10,9 @@ import br.com.fiap.mais_agua.repository.ReservatorioRepository;
 import br.com.fiap.mais_agua.repository.UsuarioRepository;
 import br.com.fiap.mais_agua.service.PerfilService;
 import br.com.fiap.mais_agua.service.TokenService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,6 +24,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+@Tag(name = "Usuário")
 @RestController
 public class UsuarioController {
     @Autowired
@@ -38,6 +42,14 @@ public class UsuarioController {
     private PerfilService perfilService;
 
     @PostMapping("/login")
+    @Operation(
+            summary = "Login do usuário",
+            description = "Autentica o usuário e retorna um token JWT",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Login realizado com sucesso"),
+                    @ApiResponse(responseCode = "401", description = "Credenciais inválidas"),
+            }
+    )
     public ResponseEntity<Token> login(@RequestBody Credentials credentials) {
         try {
             var auth = new UsernamePasswordAuthenticationToken(credentials.email(), credentials.senha());
@@ -52,6 +64,14 @@ public class UsuarioController {
     }
 
     @PostMapping("/cadastro")
+    @Operation(
+            summary = "Cadastro básico do usuário",
+            description = "Realiza o cadastro simples do usuário com nome, e-mail e senha",
+            responses = {
+                    @ApiResponse(responseCode = "201", description = "Usuário cadastrado com sucesso"),
+                    @ApiResponse(responseCode = "400", description = "E-mail já cadastrado")
+            }
+    )
     public ResponseEntity<UsuarioResponseDTO> register(@RequestBody @Valid CadastroDTO dto) {
         if (usuarioRepository.findByEmail(dto.email()).isPresent()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "E-mail já cadastrado");
@@ -70,6 +90,15 @@ public class UsuarioController {
     }
 
     @GetMapping("/perfil/{idReservatorio}")
+    @Operation(
+            summary = "Consultar perfil",
+            description = "Retorna informações do perfil do usuário com base no reservatório vinculado",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Perfil retornado com sucesso"),
+                    @ApiResponse(responseCode = "403", description = "Acesso negado"),
+                    @ApiResponse(responseCode = "404", description = "Reservatório não encontrado")
+            }
+    )
     public ResponseEntity<PerfilDTO> readPerfil(@PathVariable Integer idReservatorio,
                                                 @AuthenticationPrincipal Usuario usuario) {
         PerfilDTO perfilDTO = perfilService.getPerfil(idReservatorio, usuario);

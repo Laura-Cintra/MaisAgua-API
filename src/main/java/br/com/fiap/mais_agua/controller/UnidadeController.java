@@ -6,6 +6,9 @@ import br.com.fiap.mais_agua.model.DTO.UsuarioResponseDTO;
 import br.com.fiap.mais_agua.model.Unidade;
 import br.com.fiap.mais_agua.model.Usuario;
 import br.com.fiap.mais_agua.repository.UnidadeRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -21,12 +24,21 @@ import java.util.List;
 @RestController
 @RequestMapping("/unidade")
 @Slf4j
+@Tag(name = "Unidade", description = "Operações relacionadas as unidades do usuário")
 public class UnidadeController {
     @Autowired
     private UnidadeRepository unidadeRepository;
 
 
     @GetMapping
+    @Operation(
+            summary = "Listar unidades",
+            description = "Lista todas as unidades cadastradas pelo usuário autenticado.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Lista de unidades retornada com sucesso"),
+                    @ApiResponse(responseCode = "401", description = "Usuário não autenticado")
+            }
+    )
     public List<UnidadeReadDTO> index(@AuthenticationPrincipal Usuario usuario) {
         return unidadeRepository.findByUsuario(usuario)
                 .stream()
@@ -49,9 +61,16 @@ public class UnidadeController {
     }
 
 
-
     @PostMapping
     @ResponseStatus(code = HttpStatus.CREATED)
+    @Operation(
+            summary = "Cadastrar nova unidade",
+            description = "Cria uma nova unidade vinculada ao usuário autenticado.",
+            responses = {
+                    @ApiResponse(responseCode = "201", description = "Unidade cadastrada com sucesso"),
+                    @ApiResponse(responseCode = "400", description = "Dados inválidos")
+            }
+    )
     public UnidadeResponseDTO create(@RequestBody @Valid Unidade unidade, @AuthenticationPrincipal Usuario usuario) {
         log.info("Cadastrando unidade " + unidade.getNome());
 
@@ -68,6 +87,15 @@ public class UnidadeController {
     }
 
     @GetMapping("{id}")
+    @Operation(
+            summary = "Buscar unidade por ID",
+            description = "Retorna os dados de uma unidade específica pertencente ao usuário autenticado.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Unidade encontrada com sucesso"),
+                    @ApiResponse(responseCode = "403", description = "Usuário não autorizado"),
+                    @ApiResponse(responseCode = "404", description = "Unidade não encontrada")
+            }
+    )
     public ResponseEntity<UnidadeReadDTO> get(@PathVariable Integer id, @AuthenticationPrincipal Usuario usuario) {
         log.info("Buscando unidade " + id);
 
@@ -91,8 +119,16 @@ public class UnidadeController {
     }
 
 
-
     @DeleteMapping("{id}")
+    @Operation(
+            summary = "Excluir unidade",
+            description = "Remove uma unidade cadastrada pelo usuário autenticado.",
+            responses = {
+                    @ApiResponse(responseCode = "204", description = "Unidade excluída com sucesso"),
+                    @ApiResponse(responseCode = "403", description = "Usuário não autorizado"),
+                    @ApiResponse(responseCode = "404", description = "Unidade não encontrada")
+            }
+    )
     public ResponseEntity<Object> destroy (@PathVariable Integer id, @AuthenticationPrincipal Usuario usuario){
         log.info("Excluindo unidade " + id);
         unidadeRepository.delete(getUnidade(id, usuario));
@@ -100,6 +136,16 @@ public class UnidadeController {
     }
 
     @PutMapping("{id}")
+    @Operation(
+            summary = "Atualizar unidade",
+            description = "Atualiza os dados de uma unidade existente vinculada ao usuário autenticado.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Unidade atualizada com sucesso"),
+                    @ApiResponse(responseCode = "400", description = "Dados inválidos"),
+                    @ApiResponse(responseCode = "403", description = "Usuário não autorizado"),
+                    @ApiResponse(responseCode = "404", description = "Unidade não encontrada")
+            }
+    )
     public ResponseEntity<UnidadeReadDTO> update(@PathVariable Integer id, @RequestBody @Valid Unidade unidade, @AuthenticationPrincipal Usuario usuario
     ) {
         log.info("Atualizando unidade " + id + " com " + unidade);

@@ -21,20 +21,22 @@ public class SecurityConfig {
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http.authorizeHttpRequests(
-                        auth -> auth
-                                .requestMatchers("/login").permitAll()
-                                .requestMatchers("/cadastro").permitAll()
-                                .requestMatchers("/cadastro-completo").permitAll()
-                                .requestMatchers(HttpMethod.POST, "/unidade/**").permitAll()
-                                .requestMatchers(HttpMethod.POST, "/endereco/**").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/paises/**", "/estados/**", "/cidades/**").permitAll()
-                                .anyRequest().authenticated())
+        return http.authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/login").permitAll()
+                        .requestMatchers("/cadastro").permitAll()
+                        .requestMatchers("/cadastro-completo").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/unidade/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/endereco/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/paises/**", "/estados/**", "/cidades/**").permitAll()
+                        .anyRequest().authenticated()
+                )
                 .csrf(csrf -> csrf.disable())
                 .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
                 .httpBasic(Customizer.withDefaults())
                 .build();
     }
+
 
     @Bean
     PasswordEncoder passwordEncoder() {

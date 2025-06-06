@@ -41,7 +41,7 @@ public class CadastroCompletoService {
         Usuario usuario = Usuario.builder()
                 .nome(dto.nomeUsuario())
                 .email(dto.email())
-                .senha(passwordEncoder.encode(dto.senha())) // A senha continua sendo cadastrada, mas não será retornada
+                .senha(passwordEncoder.encode(dto.senha()))
                 .build();
         usuario = usuarioRepository.save(usuario);
 

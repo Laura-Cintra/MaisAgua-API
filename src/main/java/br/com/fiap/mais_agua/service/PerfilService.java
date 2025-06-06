@@ -38,11 +38,11 @@ public class PerfilService {
         // 1. Buscar o ReservatórioDispositivo associado ao idReservatorio
         ReservatorioDispositivo reservatorioDispositivo = reservatorioDispositivoRepository
                 .findByReservatorioIdReservatorio(idReservatorio)
-                .orElseThrow(() -> new RuntimeException("Reservatório não encontrado"));  // Erro 404 caso não encontre
+                .orElseThrow(() -> new RuntimeException("Reservatório não encontrado"));
 
         // 2. Verificar se o reservatório pertence ao usuário autenticado
         if (!reservatorioDispositivo.getReservatorio().getUnidade().getUsuario().getIdUsuario().equals(usuario.getIdUsuario())) {
-            throw new RuntimeException("Você não tem permissão para acessar este reservatório");  // Erro 403 caso não pertença ao usuário
+            throw new RuntimeException("Você não tem permissão para acessar este reservatório");
         }
 
         // 3. Buscar o endereço do usuário

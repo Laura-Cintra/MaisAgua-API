@@ -38,7 +38,7 @@ public class LeituraDispositivoService {
     /**
      * Gera leituras dos dispositivos de acordo com o último nível do histórico do reservatório
      */
-    @Scheduled(cron = "0 20 9 * * *") // Executa todos os dias às 9:20
+    @Scheduled(cron = "0 10 9 * * *") // Executa todos os dias às 9:10
     public void gerarLeitura() {
         System.out.println("Iniciando geração de leitura...");
 

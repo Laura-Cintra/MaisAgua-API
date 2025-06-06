@@ -5,6 +5,9 @@ import br.com.fiap.mais_agua.model.DTO.*;
 import br.com.fiap.mais_agua.repository.HistoricoReservatorioRepository;
 import br.com.fiap.mais_agua.repository.ReservatorioRepository;
 import br.com.fiap.mais_agua.repository.StatusReservatorioRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -20,6 +23,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/historico-reservatorio")
 @Slf4j
+@Tag(name = "Histórico do Reservatório", description = "Operações relacionadas ao monitoramento do nível de água nos reservatórios")
 public class HistoricoReservatorioController {
 
     @Autowired
@@ -32,6 +36,14 @@ public class HistoricoReservatorioController {
     private StatusReservatorioRepository statusRepository;
 
     @GetMapping
+    @Operation(
+            summary = "Listar históricos",
+            description = "Retorna todos os registros de histórico dos reservatórios do usuário logado.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Históricos retornados com sucesso"),
+                    @ApiResponse(responseCode = "401", description = "Não autorizado")
+            }
+    )
     public List<HistoricoReservatorioDTO> index(@AuthenticationPrincipal Usuario usuario) {
         List<HistoricoReservatorio> historicos = historicoRepository.findByUsuario(usuario);
 
@@ -42,6 +54,16 @@ public class HistoricoReservatorioController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @Operation(
+            summary = "Criar histórico manualmente",
+            description = "Registra manualmente o nível de água de um reservatório, vinculando a um status.",
+            responses = {
+                    @ApiResponse(responseCode = "201", description = "Histórico criado com sucesso"),
+                    @ApiResponse(responseCode = "400", description = "Nível de litros maior que a capacidade"),
+                    @ApiResponse(responseCode = "403", description = "Acesso negado"),
+                    @ApiResponse(responseCode = "404", description = "Reservatório ou status não encontrados")
+            }
+    )
     public HistoricoReservatorioDTO create(@RequestBody @Valid HistoricoReservatorio historico,
                                            @AuthenticationPrincipal Usuario usuario) {
         log.info("Cadastrando histórico");
@@ -59,13 +81,30 @@ public class HistoricoReservatorioController {
     }
 
     @GetMapping("{id}")
+    @Operation(
+            summary = "Buscar histórico por ID",
+            description = "Retorna um registro de histórico específico vinculado ao usuário.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Histórico retornado com sucesso"),
+                    @ApiResponse(responseCode = "403", description = "Acesso negado"),
+                    @ApiResponse(responseCode = "404", description = "Histórico não encontrado")
+            }
+    )
     public ResponseEntity<HistoricoReservatorioDTO> get(@PathVariable Integer id,
                                                         @AuthenticationPrincipal Usuario usuario) {
         return ResponseEntity.ok(toDTO(getHistorico(id, usuario)));
     }
 
-    // DELETE - Deletar histórico pelo ID
     @DeleteMapping("{id}")
+    @Operation(
+            summary = "Excluir histórico",
+            description = "Remove um registro de histórico do reservatório vinculado ao usuário.",
+            responses = {
+                    @ApiResponse(responseCode = "204", description = "Histórico excluído com sucesso"),
+                    @ApiResponse(responseCode = "403", description = "Acesso negado"),
+                    @ApiResponse(responseCode = "404", description = "Histórico não encontrado")
+            }
+    )
     public ResponseEntity<Object> destroy(@PathVariable Integer id,
                                           @AuthenticationPrincipal Usuario usuario) {
         var historico = getHistorico(id, usuario);
@@ -74,8 +113,17 @@ public class HistoricoReservatorioController {
         return ResponseEntity.noContent().build();
     }
 
-    // PUT - Atualizar um histórico específico pelo ID
     @PutMapping("{id}")
+    @Operation(
+            summary = "Atualizar histórico",
+            description = "Atualiza os dados de um histórico já existente de um usuário autenticado, respeitando a capacidade do reservatório.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Histórico atualizado com sucesso"),
+                    @ApiResponse(responseCode = "400", description = "Nível de litros inválido"),
+                    @ApiResponse(responseCode = "403", description = "Acesso negado"),
+                    @ApiResponse(responseCode = "404", description = "Histórico ou status não encontrados")
+            }
+    )
     public ResponseEntity<HistoricoReservatorioDTO> update(@PathVariable Integer id,
                                                            @RequestBody @Valid HistoricoReservatorio historico,
                                                            @AuthenticationPrincipal Usuario usuario) {

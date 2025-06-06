@@ -8,6 +8,9 @@ import br.com.fiap.mais_agua.model.DTO.UnidadeReadDTO;
 import br.com.fiap.mais_agua.model.DTO.UsuarioResponseDTO;
 import br.com.fiap.mais_agua.repository.EnderecoRepository;
 import br.com.fiap.mais_agua.repository.UnidadeRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -24,6 +27,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/endereco")
 @Slf4j
+@Tag(name = "Endereço")
 public class EnderecoController {
 
     @Autowired
@@ -33,6 +37,13 @@ public class EnderecoController {
     private UnidadeRepository unidadeRepository;
 
     @GetMapping
+    @Operation(
+            summary = "Listar endereços do usuário",
+            description = "Retorna todos os endereços associados às unidades do usuário autenticado.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Endereços retornados com sucesso")
+            }
+    )
     public ResponseEntity<List<EnderecoDTO>> index(@AuthenticationPrincipal Usuario usuario) {
         List<Endereco> enderecos = enderecoRepository.findByUnidadeUsuario(usuario);
         List<EnderecoDTO> enderecoDTOs = enderecos.stream()
@@ -44,6 +55,15 @@ public class EnderecoController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @Operation(
+            summary = "Cadastrar endereço",
+            description = "Cadastra um novo endereço vinculado a uma unidade do usuário autenticado.",
+            responses = {
+                    @ApiResponse(responseCode = "201", description = "Endereço cadastrado com sucesso"),
+                    @ApiResponse(responseCode = "403", description = "Acesso não autorizado à unidade"),
+                    @ApiResponse(responseCode = "404", description = "Unidade não encontrada")
+            }
+    )
     public EnderecoDTO create(@RequestBody @Valid Endereco endereco, @AuthenticationPrincipal Usuario usuario) {
         log.info("Cadastrando endereço: " + endereco.getLogradouro());
 
@@ -61,6 +81,15 @@ public class EnderecoController {
     }
 
     @GetMapping("{id}")
+    @Operation(
+            summary = "Buscar endereço por ID",
+            description = "Retorna os dados de um endereço específico, se o usuário for o dono.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Endereço encontrado"),
+                    @ApiResponse(responseCode = "403", description = "Usuário não autorizado"),
+                    @ApiResponse(responseCode = "404", description = "Endereço não encontrado")
+            }
+    )
     public ResponseEntity<EnderecoDTO> get(@PathVariable Integer id, @AuthenticationPrincipal Usuario usuario) {
         log.info("Buscando endereço " + id);
         Endereco endereco = enderecoRepository.findById(id)
@@ -76,6 +105,15 @@ public class EnderecoController {
 
 
     @DeleteMapping("{id}")
+    @Operation(
+            summary = "Excluir endereço",
+            description = "Exclui um endereço se ele pertencer a uma unidade do usuário autenticado.",
+            responses = {
+                    @ApiResponse(responseCode = "204", description = "Endereço excluído com sucesso"),
+                    @ApiResponse(responseCode = "403", description = "Acesso negado"),
+                    @ApiResponse(responseCode = "404", description = "Endereço não encontrado")
+            }
+    )
     public ResponseEntity<Object> destroy(@PathVariable Integer id, @AuthenticationPrincipal Usuario usuario) {
         log.info("Excluindo endereço " + id);
         Endereco endereco = enderecoRepository.findById(id)
@@ -91,6 +129,15 @@ public class EnderecoController {
 
 
     @PutMapping("{id}")
+    @Operation(
+            summary = "Atualizar endereço",
+            description = "Atualiza um endereço se o usuário for dono da unidade relacionada.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Endereço atualizado com sucesso"),
+                    @ApiResponse(responseCode = "403", description = "Usuário não autorizado"),
+                    @ApiResponse(responseCode = "404", description = "Endereço não encontrado")
+            }
+    )
     public ResponseEntity<Object> update(@PathVariable Integer id,
                                          @RequestBody @Valid Endereco endereco,
                                          @AuthenticationPrincipal Usuario usuario) {

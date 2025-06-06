@@ -11,6 +11,9 @@ import br.com.fiap.mais_agua.model.DTO.UsuarioResponseDTO;
 import br.com.fiap.mais_agua.repository.DispositivoRepository;
 import br.com.fiap.mais_agua.repository.ReservatorioRepository;
 import br.com.fiap.mais_agua.repository.ReservatorioDispositivoRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -27,14 +30,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/reservatorio-dispositivo")
 @Slf4j
+@Tag(name = "Dispositivo")
 public class ReservatorioDispositivoController {
-
-    public record ReservatorioDispositivoFilters(
-            Integer idReservatorio,   // Filtro para o reservatório
-            Integer idDispositivo,    // Filtro para o dispositivo
-            LocalDate dataInstalacao  // Filtro para a data de instalação
-    ) {}
-
     @Autowired
     private ReservatorioDispositivoRepository reservatorioSensorRepository;
 
@@ -45,6 +42,13 @@ public class ReservatorioDispositivoController {
     private DispositivoRepository dispositivoRepository;
 
     @GetMapping
+    @Operation(
+            summary = "Listar vínculos entre reservatórios e dispositivos",
+            description = "Retorna todos os vínculos entre reservatórios e dispositivos do usuário autenticado.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso")
+            }
+    )
     public List<ReservatorioDispositivoDTO> index(@AuthenticationPrincipal Usuario usuario) {
         return reservatorioSensorRepository.findAll().stream()
                 .filter(rs -> rs.getReservatorio().getUnidade().getUsuario().equals(usuario))
@@ -54,6 +58,15 @@ public class ReservatorioDispositivoController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @Operation(
+            summary = "Criar vínculo entre reservatório e dispositivo",
+            description = "Cria um novo vínculo manualmente entre um reservatório e um dispositivo existente.",
+            responses = {
+                    @ApiResponse(responseCode = "201", description = "Vínculo criado com sucesso"),
+                    @ApiResponse(responseCode = "403", description = "Usuário não autorizado"),
+                    @ApiResponse(responseCode = "404", description = "Reservatório ou dispositivo não encontrado")
+            }
+    )
     public ReservatorioDispositivoDTO create(@RequestBody @Valid ReservatorioDispositivo reservatorioSensor,
                                              @AuthenticationPrincipal Usuario usuario) {
         log.info("Cadastrando ReservatorioSensor");
@@ -69,6 +82,15 @@ public class ReservatorioDispositivoController {
     }
 
     @GetMapping("{id}")
+    @Operation(
+            summary = "Buscar vínculo por ID",
+            description = "Retorna os dados de um vínculo entre reservatório e dispositivo pelo ID.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Vínculo encontrado"),
+                    @ApiResponse(responseCode = "403", description = "Usuário não autorizado"),
+                    @ApiResponse(responseCode = "404", description = "Vínculo não encontrado")
+            }
+    )
     public ResponseEntity<ReservatorioDispositivoDTO> get(@PathVariable Integer id,
                                                           @AuthenticationPrincipal Usuario usuario) {
         return ResponseEntity.ok(toDTO(getReservatorioSensor(id, usuario)));
@@ -76,6 +98,15 @@ public class ReservatorioDispositivoController {
 
 
     @DeleteMapping("{id}")
+    @Operation(
+            summary = "Excluir vínculo",
+            description = "Remove um vínculo entre reservatório e dispositivo, se pertencer ao usuário autenticado.",
+            responses = {
+                    @ApiResponse(responseCode = "204", description = "Vínculo removido com sucesso"),
+                    @ApiResponse(responseCode = "403", description = "Acesso negado"),
+                    @ApiResponse(responseCode = "404", description = "Vínculo não encontrado")
+            }
+    )
     public ResponseEntity<Object> destroy(@PathVariable Integer id,
                                           @AuthenticationPrincipal Usuario usuario) {
         var reservatorioSensor = getReservatorioSensor(id, usuario);
@@ -85,6 +116,15 @@ public class ReservatorioDispositivoController {
 
 
     @PutMapping("{id}")
+    @Operation(
+            summary = "Atualizar vínculo",
+            description = "Atualiza o vínculo entre reservatório e dispositivo.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Vínculo atualizado com sucesso"),
+                    @ApiResponse(responseCode = "403", description = "Acesso negado"),
+                    @ApiResponse(responseCode = "404", description = "Reservatório ou dispositivo não encontrado")
+            }
+    )
     public ResponseEntity<ReservatorioDispositivoDTO> update(@PathVariable Integer id,
                                                              @RequestBody @Valid ReservatorioDispositivo reservatorioSensor,
                                                              @AuthenticationPrincipal Usuario usuario) {

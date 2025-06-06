@@ -7,6 +7,9 @@ import br.com.fiap.mais_agua.model.Reservatorio;
 import br.com.fiap.mais_agua.model.Usuario;
 import br.com.fiap.mais_agua.repository.ReservatorioRepository;
 import br.com.fiap.mais_agua.service.ReservatorioService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -23,6 +26,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/reservatorio")
 @Slf4j
+@Tag(name="Reservatório", description = "Operações relacionadas ao reservatório de uma unidade do usuário.")
 public class ReservatorioController {
 
     @Autowired
@@ -33,6 +37,14 @@ public class ReservatorioController {
     private ReservatorioService service;
 
     @GetMapping
+    @Operation(
+            summary = "Listar reservatórios",
+            description = "Retorna todos os reservatórios cadastrados nas unidades do usuário autenticado.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Lista de reservatórios retornada com sucesso"),
+                    @ApiResponse(responseCode = "401", description = "Usuário não autenticado")
+            }
+    )
     public List<ReservatorioReadDTO> index(@AuthenticationPrincipal Usuario usuario) {
         List<Reservatorio> lista = reservatorioRepository.findByUnidadeUsuario(usuario);
         List<ReservatorioReadDTO> dtoList = new ArrayList<>();
@@ -62,6 +74,16 @@ public class ReservatorioController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @Operation(
+            summary = "Criar reservatório",
+            description = "Cadastra um novo reservatório vinculado a uma unidade do usuário. Caso não haja dispositivo disponível, um novo será criado automaticamente.",
+            responses = {
+                    @ApiResponse(responseCode = "201", description = "Reservatório criado com sucesso"),
+                    @ApiResponse(responseCode = "400", description = "Dados inválidos ou capacidade excedida do reservatório relacionado a capacidade da unidade"),
+                    @ApiResponse(responseCode = "403", description = "Usuário sem permissão"),
+                    @ApiResponse(responseCode = "404", description = "Unidade não encontrada")
+            }
+    )
     public ReservatorioReadDTO create(@RequestBody @Valid Reservatorio reservatorio,
                                       @AuthenticationPrincipal Usuario usuario) {
         var created = service.criarReservatorio(reservatorio, usuario);
@@ -86,6 +108,15 @@ public class ReservatorioController {
     }
 
     @GetMapping("{id}")
+    @Operation(
+            summary = "Buscar reservatório por ID",
+            description = "Retorna os dados de um reservatório específico vinculado ao usuário autenticado.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Reservatório encontrado com sucesso"),
+                    @ApiResponse(responseCode = "403", description = "Acesso negado"),
+                    @ApiResponse(responseCode = "404", description = "Reservatório não encontrado")
+            }
+    )
     public ResponseEntity<ReservatorioReadDTO> get(@PathVariable Integer id,
                                                    @AuthenticationPrincipal Usuario usuario) {
         log.info("Buscando reservatório " + id);
@@ -114,6 +145,15 @@ public class ReservatorioController {
     }
 
     @DeleteMapping("{id}")
+    @Operation(
+            summary = "Excluir reservatório",
+            description = "Remove um reservatório existente e seus vínculos com dispositivos.",
+            responses = {
+                    @ApiResponse(responseCode = "204", description = "Reservatório excluído com sucesso"),
+                    @ApiResponse(responseCode = "403", description = "Acesso negado"),
+                    @ApiResponse(responseCode = "404", description = "Reservatório não encontrado")
+            }
+    )
     public ResponseEntity<Object> destroy(@PathVariable Integer id, @AuthenticationPrincipal Usuario usuario) {
         log.info("Excluindo reservatório " + id);
         service.deletarReservatorio(id, usuario);
@@ -122,6 +162,16 @@ public class ReservatorioController {
 
 
     @PutMapping("{id}")
+    @Operation(
+            summary = "Atualizar reservatório",
+            description = "Atualiza os dados de um reservatório vinculado ao usuário autenticado.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Reservatório atualizado com sucesso"),
+                    @ApiResponse(responseCode = "400", description = "Dados inválidos"),
+                    @ApiResponse(responseCode = "403", description = "Acesso negado"),
+                    @ApiResponse(responseCode = "404", description = "Reservatório não encontrado")
+            }
+    )
     public ResponseEntity<ReservatorioReadDTO> update(@PathVariable Integer id,
                                                       @RequestBody @Valid Reservatorio reservatorio,
                                                       @AuthenticationPrincipal Usuario usuario) {
