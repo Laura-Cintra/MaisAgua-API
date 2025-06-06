@@ -45,13 +45,23 @@ public class HistoricoReservatorioController {
             description = "Retorna todos os registros de histórico dos reservatórios do usuário logado.",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Históricos retornados com sucesso"),
-                    @ApiResponse(responseCode = "401", description = "Não autorizado")
+                    @ApiResponse(responseCode = "401", description = "Não autorizado"),
+                    @ApiResponse(responseCode = "403", description = "Você não tem acesso a este reservatório")
             }
     )
     public List<HistoricoReservatorioDTO> index(
             @AuthenticationPrincipal Usuario usuario,
             @ParameterObject HistoricoReservatorioFilters filters) {
 
+        if (filters.idReservatorio != null) {
+            boolean pertence = reservatorioRepository.existsByIdReservatorioAndUnidadeUsuario(
+                    filters.idReservatorio, usuario
+            );
+
+            if (!pertence) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Você não tem acesso a este reservatório");
+            }
+        }
         var specification = HistoricoReservatorioSpecification.withFilters(filters, usuario);
 
         List<HistoricoReservatorio> historicos = historicoRepository.findAll(specification);
@@ -60,6 +70,7 @@ public class HistoricoReservatorioController {
                 .map(this::toDTO)
                 .toList();
     }
+
 
 
     @PostMapping

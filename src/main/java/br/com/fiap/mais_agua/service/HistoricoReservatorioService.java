@@ -8,6 +8,7 @@ import br.com.fiap.mais_agua.repository.ReservatorioRepository;
 import br.com.fiap.mais_agua.repository.StatusReservatorioRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -20,9 +21,12 @@ import java.util.Random;
 @RequiredArgsConstructor
 public class HistoricoReservatorioService {
 
-    private final ReservatorioRepository reservatorioRepository;
-    private final HistoricoReservatorioRepository historicoRepository;
-    private final StatusReservatorioRepository statusRepository;
+    @Autowired
+    private ReservatorioRepository reservatorioRepository;
+    @Autowired
+    private HistoricoReservatorioRepository historicoRepository;
+    @Autowired
+    private StatusReservatorioRepository statusRepository;
 
     private final Random random = new Random();
 

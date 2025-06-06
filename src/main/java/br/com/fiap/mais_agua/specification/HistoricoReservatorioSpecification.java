@@ -15,12 +15,10 @@ public class HistoricoReservatorioSpecification {
 
             var predicates = new ArrayList<Predicate>();
 
-            // Filtro para garantir que o histórico seja do reservatório do usuário logado
             predicates.add(
                     cb.equal(root.get("reservatorio").get("unidade").get("usuario"), usuario)
             );
 
-            // Filtro por id do Reservatório (acesso através da entidade 'reservatorio')
             if (filters.idReservatorio() != null) {
                 predicates.add(
                         cb.equal(root.get("reservatorio").get("idReservatorio"), filters.idReservatorio())  // Acessa o id do Reservatório
@@ -41,7 +39,6 @@ public class HistoricoReservatorioSpecification {
                 );
             }
 
-            // Adiciona os predicados à consulta
             var arrayPredicates = predicates.toArray(new Predicate[0]);
             query.where(cb.and(arrayPredicates));
 
