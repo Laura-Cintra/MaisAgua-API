@@ -5,6 +5,7 @@ import br.com.fiap.mais_agua.model.DTO.*;
 import br.com.fiap.mais_agua.repository.HistoricoReservatorioRepository;
 import br.com.fiap.mais_agua.repository.ReservatorioRepository;
 import br.com.fiap.mais_agua.repository.StatusReservatorioRepository;
+import br.com.fiap.mais_agua.specification.HistoricoReservatorioSpecification;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -35,6 +36,8 @@ public class HistoricoReservatorioController {
     @Autowired
     private StatusReservatorioRepository statusRepository;
 
+    public record HistoricoReservatorioFilters(Integer idReservatorio, Integer nivelLitros, Integer status){}
+
     @GetMapping
     @Operation(
             summary = "Listar históricos",
@@ -44,13 +47,22 @@ public class HistoricoReservatorioController {
                     @ApiResponse(responseCode = "401", description = "Não autorizado")
             }
     )
-    public List<HistoricoReservatorioDTO> index(@AuthenticationPrincipal Usuario usuario) {
-        List<HistoricoReservatorio> historicos = historicoRepository.findByUsuario(usuario);
+    public List<HistoricoReservatorioDTO> index(
+            @AuthenticationPrincipal Usuario usuario,
+            HistoricoReservatorioFilters filters) {
 
+        // Cria a especificação com os filtros e o usuário logado
+        var specification = HistoricoReservatorioSpecification.withFilters(filters, usuario);
+
+        // Aplica a especificação para filtrar os registros do usuário
+        List<HistoricoReservatorio> historicos = historicoRepository.findAll(specification);
+
+        // Retorna os históricos convertidos para DTO
         return historicos.stream()
                 .map(this::toDTO)
                 .toList();
     }
+
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)

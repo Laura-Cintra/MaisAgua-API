@@ -12,6 +12,6 @@ public interface ReservatorioRepository extends JpaRepository<Reservatorio, Inte
     List<Reservatorio> findByUnidadeUsuario(Usuario usuario);
     List<Reservatorio> findByUnidade(Unidade unidade);
     Reservatorio findByIdReservatorio(Integer idReservatorio);
-
+    boolean existsByIdReservatorioAndUnidadeUsuario(Integer idReservatorio, Usuario usuario);
 
 }

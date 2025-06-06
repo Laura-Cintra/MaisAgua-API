@@ -6,17 +6,20 @@ import br.com.fiap.mais_agua.model.Usuario;
 import br.com.fiap.mais_agua.repository.DispositivoRepository;
 import br.com.fiap.mais_agua.repository.LeituraDispositivoRepository;
 import br.com.fiap.mais_agua.repository.ReservatorioDispositivoRepository;
+import br.com.fiap.mais_agua.repository.ReservatorioRepository;
 import br.com.fiap.mais_agua.specification.LeituraDispositivoSpecification;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,23 +43,34 @@ public class LeituraDispositivoController {
 
     @Autowired
     private ReservatorioDispositivoRepository reservatorioDispositivoRepository;
+    @Autowired
+    private ReservatorioRepository reservatorioRepository;
 
-    public record LeituraDispositivoFilters(Integer idReservatorio) {}
+    public record LeituraDispositivoFilter(Integer idReservatorio) {}
 
     @GetMapping
-    @Operation(
-            summary = "Listar leituras dos dispositivos",
-            description = "Retorna uma lista paginada de leituras com filtros opcionais como ID do reservatório do usuário autenticado.",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Leituras encontradas com sucesso")
+    public Page<LeituraDispositivo> index(
+            @AuthenticationPrincipal Usuario usuario,
+            @ParameterObject LeituraDispositivoFilter filters,
+            @PageableDefault(size = 10, sort = "dataHora", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+        if (filters.idReservatorio() != null) {
+            boolean pertence = reservatorioRepository.existsByIdReservatorioAndUnidadeUsuario(
+                    filters.idReservatorio(), usuario
+            );
+
+            if (!pertence) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Você não tem acesso a esse reservatório");
             }
-    )
-    public List<LeituraDispositivo> index(@AuthenticationPrincipal Usuario usuario) {
-        return leituraRepository.findAll().stream()
-                .filter(leitura ->
-                        pertenceAoUsuario(leitura.getDispositivo(), usuario)
-                ).toList();
+        }
+
+        Specification<LeituraDispositivo> spec = LeituraDispositivoSpecification.withFilters(filters, usuario);
+
+        return leituraRepository.findAll(spec, pageable);
     }
+
+
+
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
