@@ -14,6 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -49,6 +51,7 @@ public class HistoricoReservatorioController {
                     @ApiResponse(responseCode = "403", description = "Você não tem acesso a este reservatório")
             }
     )
+    @Cacheable("historicoReservatorio")
     public List<HistoricoReservatorioDTO> index(
             @AuthenticationPrincipal Usuario usuario,
             @ParameterObject HistoricoReservatorioFilters filters) {
@@ -85,6 +88,7 @@ public class HistoricoReservatorioController {
                     @ApiResponse(responseCode = "404", description = "Reservatório ou status não encontrados")
             }
     )
+    @CacheEvict(value = "historicoReservatorio", allEntries = true)
     public HistoricoReservatorioDTO create(@RequestBody @Valid HistoricoReservatorio historico,
                                            @AuthenticationPrincipal Usuario usuario) {
         log.info("Cadastrando histórico");
@@ -126,6 +130,7 @@ public class HistoricoReservatorioController {
                     @ApiResponse(responseCode = "404", description = "Histórico não encontrado")
             }
     )
+    @CacheEvict(value = "historicoReservatorio", allEntries = true)
     public ResponseEntity<Object> destroy(@PathVariable Integer id,
                                           @AuthenticationPrincipal Usuario usuario) {
         var historico = getHistorico(id, usuario);
@@ -145,6 +150,7 @@ public class HistoricoReservatorioController {
                     @ApiResponse(responseCode = "404", description = "Histórico ou status não encontrados")
             }
     )
+    @CacheEvict(value = "historicoReservatorio", allEntries = true)
     public ResponseEntity<HistoricoReservatorioDTO> update(@PathVariable Integer id,
                                                            @RequestBody @Valid HistoricoReservatorio historico,
                                                            @AuthenticationPrincipal Usuario usuario) {

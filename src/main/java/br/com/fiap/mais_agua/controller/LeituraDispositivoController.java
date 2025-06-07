@@ -16,6 +16,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -57,6 +59,7 @@ public class LeituraDispositivoController {
                     @ApiResponse(responseCode = "403", description = "O usuário autenticado não tem permissão para acessar o reservatório informado.")
             }
     )
+    @Cacheable("leituraDispositivo")
     public Page<LeituraDispositivo> index(
             @AuthenticationPrincipal Usuario usuario,
             @ParameterObject LeituraDispositivoFilter filters,
@@ -87,6 +90,7 @@ public class LeituraDispositivoController {
                     @ApiResponse(responseCode = "404", description = "Dispositivo não encontrado")
             }
     )
+    @CacheEvict(value = "leituraDispositivo", allEntries = true)
     public LeituraDispositivo create(@RequestBody @Valid LeituraDispositivo leitura,
                                      @AuthenticationPrincipal Usuario usuario) {
         log.info("Cadastrando leitura de dispositivo");
@@ -121,6 +125,7 @@ public class LeituraDispositivoController {
                     @ApiResponse(responseCode = "404", description = "Leitura não encontrada")
             }
     )
+    @CacheEvict(value = "leituraDispositivo", allEntries = true)
     public ResponseEntity<Object> destroy(@PathVariable Integer id,
                                           @AuthenticationPrincipal Usuario usuario) {
         var leitura = getLeituraDoUsuario(id, usuario);
@@ -138,6 +143,7 @@ public class LeituraDispositivoController {
                     @ApiResponse(responseCode = "404", description = "Leitura ou dispositivo não encontrado")
             }
     )
+    @CacheEvict(value = "leituraDispositivo", allEntries = true)
     public ResponseEntity<Object> update(@PathVariable Integer id,
                                          @RequestBody @Valid LeituraDispositivo leitura,
                                          @AuthenticationPrincipal Usuario usuario) {

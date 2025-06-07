@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,6 +34,7 @@ public class StatusReservatorioController {
                     @ApiResponse(responseCode = "200", description = "Status retornados com sucesso")
             }
     )
+    @Cacheable("statusReservatorio")
     public List<StatusReservatorio> index() {
         return repository.findAll();
     }

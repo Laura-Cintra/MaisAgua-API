@@ -15,6 +15,8 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -44,6 +46,7 @@ public class EnderecoController {
                     @ApiResponse(responseCode = "200", description = "Endereços retornados com sucesso")
             }
     )
+    @Cacheable("endereco")
     public ResponseEntity<List<EnderecoDTO>> index(@AuthenticationPrincipal Usuario usuario) {
         List<Endereco> enderecos = enderecoRepository.findByUnidadeUsuario(usuario);
         List<EnderecoDTO> enderecoDTOs = enderecos.stream()
@@ -64,6 +67,7 @@ public class EnderecoController {
                     @ApiResponse(responseCode = "404", description = "Unidade não encontrada")
             }
     )
+    @CacheEvict(value = "endereco", allEntries = true)
     public EnderecoDTO create(@RequestBody @Valid Endereco endereco, @AuthenticationPrincipal Usuario usuario) {
         log.info("Cadastrando endereço: " + endereco.getLogradouro());
 
@@ -114,6 +118,7 @@ public class EnderecoController {
                     @ApiResponse(responseCode = "404", description = "Endereço não encontrado")
             }
     )
+    @CacheEvict(value = "endereco", allEntries = true)
     public ResponseEntity<Object> destroy(@PathVariable Integer id, @AuthenticationPrincipal Usuario usuario) {
         log.info("Excluindo endereço " + id);
         Endereco endereco = enderecoRepository.findById(id)
@@ -138,6 +143,7 @@ public class EnderecoController {
                     @ApiResponse(responseCode = "404", description = "Endereço não encontrado")
             }
     )
+    @CacheEvict(value = "endereco", allEntries = true)
     public ResponseEntity<Object> update(@PathVariable Integer id,
                                          @RequestBody @Valid Endereco endereco,
                                          @AuthenticationPrincipal Usuario usuario) {

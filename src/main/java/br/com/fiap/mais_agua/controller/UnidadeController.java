@@ -14,6 +14,8 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -42,6 +44,7 @@ public class UnidadeController {
                     @ApiResponse(responseCode = "401", description = "Usuário não autenticado")
             }
     )
+    @Cacheable("unidades")
     public List<UnidadeReadDTO> index(@AuthenticationPrincipal Usuario usuario) {
         return unidadeRepository.findByUsuario(usuario)
                 .stream()
@@ -73,6 +76,7 @@ public class UnidadeController {
                     @ApiResponse(responseCode = "400", description = "Dados inválidos")
             }
     )
+    @CacheEvict(value = "unidades", allEntries = true)
     public UnidadeResponseDTO create(@RequestBody @Valid Unidade unidade, @AuthenticationPrincipal Usuario usuario) {
         log.info("Cadastrando unidade " + unidade.getNome());
 
@@ -131,6 +135,7 @@ public class UnidadeController {
                     @ApiResponse(responseCode = "409", description = "Não é possível excluir a unidade, porque um reservatório vinculado possui histórico.")
             }
     )
+    @CacheEvict(value = "unidades", allEntries = true)
     public ResponseEntity<Void> destroy(
             @PathVariable Integer id,
             @AuthenticationPrincipal Usuario usuario
@@ -152,6 +157,7 @@ public class UnidadeController {
                     @ApiResponse(responseCode = "404", description = "Unidade não encontrada")
             }
     )
+    @CacheEvict(value = "unidades", allEntries = true)
     public ResponseEntity<UnidadeReadDTO> update(@PathVariable Integer id, @RequestBody @Valid Unidade unidade, @AuthenticationPrincipal Usuario usuario
     ) {
         log.info("Atualizando unidade " + id + " com " + unidade);

@@ -14,6 +14,8 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -45,6 +47,7 @@ public class ReservatorioController {
                     @ApiResponse(responseCode = "401", description = "Usuário não autenticado")
             }
     )
+    @Cacheable("reservatorios")
     public List<ReservatorioReadDTO> index(@AuthenticationPrincipal Usuario usuario) {
         List<Reservatorio> lista = reservatorioRepository.findByUnidadeUsuario(usuario);
         List<ReservatorioReadDTO> dtoList = new ArrayList<>();
@@ -84,6 +87,7 @@ public class ReservatorioController {
                     @ApiResponse(responseCode = "404", description = "Unidade não encontrada")
             }
     )
+    @CacheEvict(value = "reservatorios", allEntries = true)
     public ReservatorioReadDTO create(@RequestBody @Valid Reservatorio reservatorio,
                                       @AuthenticationPrincipal Usuario usuario) {
         var created = service.criarReservatorio(reservatorio, usuario);
@@ -155,6 +159,7 @@ public class ReservatorioController {
                     @ApiResponse(responseCode = "409", description = "Não é possível excluir o reservatório, porque está vinculado à algum histórico.")
             }
     )
+    @CacheEvict(value = "reservatorios", allEntries = true)
     public ResponseEntity<Object> destroy(@PathVariable Integer id, @AuthenticationPrincipal Usuario usuario) {
         log.info("Excluindo reservatório " + id);
         service.deletarReservatorio(id, usuario);
@@ -173,6 +178,7 @@ public class ReservatorioController {
                     @ApiResponse(responseCode = "404", description = "Reservatório não encontrado")
             }
     )
+    @CacheEvict(value = "reservatorios", allEntries = true)
     public ResponseEntity<ReservatorioReadDTO> update(@PathVariable Integer id,
                                                       @RequestBody @Valid Reservatorio reservatorio,
                                                       @AuthenticationPrincipal Usuario usuario) {

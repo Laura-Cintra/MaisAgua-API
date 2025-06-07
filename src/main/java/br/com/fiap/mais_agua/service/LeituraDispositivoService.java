@@ -8,6 +8,7 @@ import br.com.fiap.mais_agua.repository.LeituraDispositivoRepository;
 import br.com.fiap.mais_agua.repository.ReservatorioDispositivoRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -38,6 +39,7 @@ public class LeituraDispositivoService {
     /**
      * Gera leituras dos dispositivos de acordo com o último nível do histórico do reservatório
      */
+    @CacheEvict(value = "leituraDispositivo", allEntries = true)
     @Scheduled(cron = "0 10 9 * * *") // Executa todos os dias às 9:10
     public void gerarLeitura() {
         System.out.println("Iniciando geração de leitura...");

@@ -5,6 +5,7 @@ import br.com.fiap.mais_agua.repository.DispositivoRepository;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,6 +34,7 @@ public class DispositivoController {
                     @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso")
             }
     )
+    @Cacheable("dispositivos")
     public List<Dispositivo> index() {
         return dispositivoRepository.findAll();
     }

@@ -4,6 +4,7 @@ import br.com.fiap.mais_agua.model.Cidade;
 import br.com.fiap.mais_agua.repository.CidadeRepository;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,6 +29,7 @@ public class CidadeController {
                     @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso")
             }
     )
+    @Cacheable("cidades")
     public List<Cidade> listar() {
         return repository.findAll();
     }

@@ -15,6 +15,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -50,6 +52,7 @@ public class UsuarioController {
                     @ApiResponse(responseCode = "401", description = "Credenciais inválidas"),
             }
     )
+    @CacheEvict(value = "usuarios", allEntries = true)
     public ResponseEntity<Token> login(@RequestBody Credentials credentials) {
         try {
             var auth = new UsernamePasswordAuthenticationToken(credentials.email(), credentials.senha());
@@ -72,6 +75,7 @@ public class UsuarioController {
                     @ApiResponse(responseCode = "400", description = "E-mail já cadastrado")
             }
     )
+    @CacheEvict(value = "usuarios", allEntries = true)
     public ResponseEntity<UsuarioResponseDTO> register(@RequestBody @Valid CadastroDTO dto) {
         if (usuarioRepository.findByEmail(dto.email()).isPresent()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "E-mail já cadastrado");
@@ -99,6 +103,7 @@ public class UsuarioController {
                     @ApiResponse(responseCode = "404", description = "Dados não encontrados")
             }
     )
+    @Cacheable("usuarios")
     public ResponseEntity<PerfilDTO> readPerfil(@PathVariable Integer idReservatorio,
                                                 @AuthenticationPrincipal Usuario usuario) {
         PerfilDTO perfilDTO = perfilService.getPerfil(idReservatorio, usuario);

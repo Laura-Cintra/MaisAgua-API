@@ -18,6 +18,8 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -49,6 +51,7 @@ public class ReservatorioDispositivoController {
                     @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso")
             }
     )
+    @Cacheable("reservatorioDispositivo")
     public List<ReservatorioDispositivoDTO> index(@AuthenticationPrincipal Usuario usuario) {
         return reservatorioSensorRepository.findAll().stream()
                 .filter(rs -> rs.getReservatorio().getUnidade().getUsuario().equals(usuario))
@@ -67,6 +70,7 @@ public class ReservatorioDispositivoController {
                     @ApiResponse(responseCode = "404", description = "Reservatório ou dispositivo não encontrado")
             }
     )
+    @CacheEvict(value = "reservatorioDispositivo", allEntries = true)
     public ReservatorioDispositivoDTO create(@RequestBody @Valid ReservatorioDispositivo reservatorioSensor,
                                              @AuthenticationPrincipal Usuario usuario) {
         log.info("Cadastrando ReservatorioSensor");
@@ -107,6 +111,7 @@ public class ReservatorioDispositivoController {
                     @ApiResponse(responseCode = "404", description = "Vínculo não encontrado")
             }
     )
+    @CacheEvict(value = "reservatorioDispositivo", allEntries = true)
     public ResponseEntity<Object> destroy(@PathVariable Integer id,
                                           @AuthenticationPrincipal Usuario usuario) {
         var reservatorioSensor = getReservatorioSensor(id, usuario);
@@ -125,6 +130,7 @@ public class ReservatorioDispositivoController {
                     @ApiResponse(responseCode = "404", description = "Reservatório ou dispositivo não encontrado")
             }
     )
+    @CacheEvict(value = "reservatorioDispositivo", allEntries = true)
     public ResponseEntity<ReservatorioDispositivoDTO> update(@PathVariable Integer id,
                                                              @RequestBody @Valid ReservatorioDispositivo reservatorioSensor,
                                                              @AuthenticationPrincipal Usuario usuario) {

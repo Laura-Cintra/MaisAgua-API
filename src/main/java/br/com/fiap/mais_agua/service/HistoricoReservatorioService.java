@@ -9,6 +9,7 @@ import br.com.fiap.mais_agua.repository.StatusReservatorioRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +32,7 @@ public class HistoricoReservatorioService {
     private final Random random = new Random();
 
     // Executa todo dia às 9h da manhã
+    @CacheEvict(value = "historicoReservatorio", allEntries = true)
     @Scheduled(cron = "0 0 9 * * *")
     public void gerarHistoricoDiario() {
         log.info("Iniciando geração de histórico dos reservatórios...");
