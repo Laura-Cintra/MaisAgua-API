@@ -40,7 +40,7 @@ public class LeituraDispositivoService {
      * Gera leituras dos dispositivos de acordo com o último nível do histórico do reservatório
      */
     @CacheEvict(value = "leituraDispositivo", allEntries = true)
-    @Scheduled(cron = "0 10 9 * * *") // Executa todos os dias às 9:10
+    @Scheduled(cron = "0 10 17 * * *", zone = "America/Sao_Paulo") // Executa todos os dias às 9:10
     public void gerarLeitura() {
         System.out.println("Iniciando geração de leitura...");
 

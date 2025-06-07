@@ -33,7 +33,7 @@ public class HistoricoReservatorioService {
 
     // Executa todo dia às 9h da manhã
     @CacheEvict(value = "historicoReservatorio", allEntries = true)
-    @Scheduled(cron = "0 0 9 * * *")
+    @Scheduled(cron = "0 0 17 * * *", zone = "America/Sao_Paulo")
     public void gerarHistoricoDiario() {
         log.info("Iniciando geração de histórico dos reservatórios...");
 
