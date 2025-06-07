@@ -96,7 +96,7 @@ public class UsuarioController {
             responses = {
                     @ApiResponse(responseCode = "200", description = "Perfil retornado com sucesso"),
                     @ApiResponse(responseCode = "403", description = "Acesso negado"),
-                    @ApiResponse(responseCode = "404", description = "Reservatório não encontrado")
+                    @ApiResponse(responseCode = "404", description = "Dados não encontrados")
             }
     )
     public ResponseEntity<PerfilDTO> readPerfil(@PathVariable Integer idReservatorio,

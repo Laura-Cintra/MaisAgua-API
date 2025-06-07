@@ -10,7 +10,9 @@ import br.com.fiap.mais_agua.model.Dispositivo;
 import br.com.fiap.mais_agua.model.Usuario;
 import br.com.fiap.mais_agua.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -38,18 +40,18 @@ public class PerfilService {
         // 1. Buscar o ReservatórioDispositivo associado ao idReservatorio
         ReservatorioDispositivo reservatorioDispositivo = reservatorioDispositivoRepository
                 .findByReservatorioIdReservatorio(idReservatorio)
-                .orElseThrow(() -> new RuntimeException("Reservatório não encontrado"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,"Reservatório não encontrado"));
 
         // 2. Verificar se o reservatório pertence ao usuário autenticado
         if (!reservatorioDispositivo.getReservatorio().getUnidade().getUsuario().getIdUsuario().equals(usuario.getIdUsuario())) {
-            throw new RuntimeException("Você não tem permissão para acessar este reservatório");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Você não tem permissão para acessar este reservatório");
         }
 
         // 3. Buscar o endereço do usuário
         List<Endereco> enderecos = enderecoRepository.findByUnidadeUsuario(usuario);
         Endereco endereco = enderecos.stream()
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("Endereço não encontrado"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,"Endereço não encontrado"));
 
         Reservatorio reservatorio = reservatorioDispositivo.getReservatorio();
         Dispositivo dispositivo = reservatorioDispositivo.getDispositivo();
@@ -80,7 +82,7 @@ public class PerfilService {
                     .nivelPct(leituraDispositivo != null ? leituraDispositivo.getNivelPct() : 0)
                     .build();
         } else {
-            throw new RuntimeException("Usuário não encontrado com o id: " + usuario.getIdUsuario());
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado com o id: " + usuario.getIdUsuario());
         }
     }
 }
