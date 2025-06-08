@@ -88,7 +88,6 @@ http://localhost:8080/swagger-ui/index.html
 
 - [Link da API em Produção](https://maisagua-api.onrender.com)
 - [Link do repositório GitHub](https://github.com/MariaEdPaixao/MaisAgua-API.git)
-- [Vídeo Demonstração da Solução (até 10min)](#)
 - [Pitch do Projeto (até 3min)](#)
 
 ---
